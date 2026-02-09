@@ -28,7 +28,13 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         
         # Fletcher-Reeves update
         beta = np.dot(g_new, g_new) / (np.dot(g, g) + 1e-10)
-        p = -g_new + beta * p
+        p_new = -g_new + beta * p
+        
+        # FIX: Reset to steepest descent if not a descent direction
+        if np.dot(p_new, g_new) >= 0:
+            p_new = -g_new
+            
+        p = p_new
         
         g = g_new
         x = x_new
