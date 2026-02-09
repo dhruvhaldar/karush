@@ -1,0 +1,48 @@
+import numpy as np
+
+def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
+    """
+    Newton's method for unconstrained optimization.
+    
+    Args:
+        f: Objective function.
+        grad_f: Gradient of the objective function.
+        hess_f: Hessian of the objective function.
+        x0: Initial guess.
+        tol: Tolerance for stopping criterion.
+        max_iter: Maximum number of iterations.
+        
+    Returns:
+        x_opt: Optimal solution.
+        history: List of iterates.
+    """
+    x = np.array(x0, dtype=float)
+    history = [x.copy()]
+    
+    for k in range(max_iter):
+        g = grad_f(x)
+        if np.linalg.norm(g) < tol:
+            break
+            
+        H = hess_f(x)
+        # Solve H * p = -g
+        try:
+            p = np.linalg.solve(H, -g)
+        except np.linalg.LinAlgError:
+            # Fallback for singular Hessian or if simple Newton fails locally
+            # In a robust implementation, we might use trust region or modify H
+            p = -g 
+
+        # Line search (backtracking)
+        alpha = 1.0
+        rho = 0.5
+        c = 1e-4
+        while f(x + alpha * p) > f(x) + c * alpha * np.dot(g, p):
+            alpha *= rho
+            if alpha < 1e-10: # Safety break
+                break
+            
+        x += alpha * p
+        history.append(x.copy())
+        
+    return x, np.array(history)
