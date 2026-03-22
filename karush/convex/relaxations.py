@@ -1,4 +1,5 @@
 import numpy as np
+import secrets
 from ..semidefinite.interior_point import solve_sdp_barrier
 
 def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
@@ -42,9 +43,13 @@ def randomized_rounding(X, num_trials=100):
         # X = V D V.T = (V D^0.5) (V D^0.5).T
         L = v @ np.diag(np.sqrt(w))
         
+    # Security: Use a securely seeded PRNG to prevent predictable randomized rounding
+    # which can be a risk if used in cryptography or network security contexts.
+    rng = np.random.default_rng(secrets.randbits(128))
+
     candidates = []
     for _ in range(num_trials):
-        r = np.random.randn(n)
+        r = rng.standard_normal(n)
         # x = sign(L @ r)
         x = np.sign(L @ r)
         x[x == 0] = 1
