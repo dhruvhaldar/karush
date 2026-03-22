@@ -1,0 +1,3 @@
+## 2024-03-22 - Extracted Line Search Calculations
+**Learning:** Backtracking line search algorithms (`karush/unconstrained/`) evaluate the objective function and the dot product of the gradient and search direction on every iteration. Since only the step size `alpha` changes, these values can be pre-computed outside the `while` loop to save significant computation time.
+**Action:** When reviewing mathematical optimization algorithms, look for redundant evaluations inside line search or line step loops. Extracting these calculations can yield large performance gains, especially for expensive objective functions.

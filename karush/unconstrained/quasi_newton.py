@@ -24,7 +24,11 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         c = 1e-4
         
         # Simple backtracking line search
-        while f(x + alpha * p) > f(x) + c * alpha * np.dot(g, p):
+        # Pre-compute values to avoid re-evaluating f(x) and the dot product in the loop
+        fx = f(x)
+        expected_decrease = c * np.dot(g, p)
+
+        while f(x + alpha * p) > fx + alpha * expected_decrease:
             alpha *= rho
             if alpha < 1e-10: 
                 break
