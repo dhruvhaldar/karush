@@ -1,3 +1,3 @@
-## 2024-03-22 - Extracted Line Search Calculations
-**Learning:** Backtracking line search algorithms (`karush/unconstrained/`) evaluate the objective function and the dot product of the gradient and search direction on every iteration. Since only the step size `alpha` changes, these values can be pre-computed outside the `while` loop to save significant computation time.
-**Action:** When reviewing mathematical optimization algorithms, look for redundant evaluations inside line search or line step loops. Extracting these calculations can yield large performance gains, especially for expensive objective functions.
+## 2026-03-23 - BFGS Inverse Hessian Update Complexity
+**Learning:** The BFGS inverse Hessian update formula `H = V @ H @ V.T + rho_inv * np.outer(s, s)` involves matrix-matrix multiplications which scale at $O(n^3)$. In the standard implementation, this is a significant bottleneck.
+**Action:** By expanding the formula using the Sherman-Morrison-Woodbury identity and leveraging matrix-vector multiplications, the update can be performed in $O(n^2)$ time: `H = H - rho_inv * (np.outer(s, Hy) + np.outer(Hy, s)) + rho_inv * (rho_inv * yHy + 1.0) * np.outer(s, s)` where `Hy = np.dot(H, y)` and `yHy = np.dot(y, Hy)`. This provides a massive speedup for large optimization problems without altering behavior.

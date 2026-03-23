@@ -6,8 +6,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     x = np.array(x0, dtype=float)
     n = len(x)
-    I = np.eye(n)
-    H = I  # Inverse Hessian approximation
+    H = np.eye(n)  # Inverse Hessian approximation
     history = [x.copy()]
     
     g = grad_f(x)
@@ -39,12 +38,19 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         s = x_new - x
         y = g_new - g
         
-        # BFGS update
+        # BFGS update (optimized O(n^2) implementation instead of O(n^3))
+        # H = (I - rho_inv * s @ y.T) @ H @ (I - rho_inv * y @ s.T) + rho_inv * s @ s.T
+        # Expands to: H - rho_inv * (s @ y.T @ H + H @ y @ s.T) + rho_inv^2 * s @ y.T @ H @ y @ s.T + rho_inv * s @ s.T
         ys = np.dot(y, s)
         if ys > 1e-10:
             rho_inv = 1.0 / ys
-            V = I - rho_inv * np.outer(s, y)
-            H = np.dot(V, np.dot(H, V.T)) + rho_inv * np.outer(s, s)
+
+            # Use matrix-vector products instead of matrix-matrix products
+            Hy = np.dot(H, y)
+            yHy = np.dot(y, Hy)
+
+            # O(n^2) update
+            H = H - rho_inv * (np.outer(s, Hy) + np.outer(Hy, s)) + rho_inv * (rho_inv * yHy + 1.0) * np.outer(s, s)
         else:
             # If ys is small, update might be unstable, so skip or restart H
             pass
