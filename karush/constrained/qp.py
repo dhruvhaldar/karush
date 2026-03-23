@@ -10,6 +10,13 @@ def solve_eq_qp(G, c, A, b):
     [ G  A^T ] [ x ] = [ -c ]
     [ A   0  ] [ lambda ]   [ b  ]
     """
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(G)) or not np.all(np.isfinite(c)):
+        raise ValueError("Input arrays G and c must contain only finite numbers.")
+    if A is not None and A.size > 0 and (not np.all(np.isfinite(A)) or not np.all(np.isfinite(b))):
+        raise ValueError("Constraint arrays A and b must contain only finite numbers.")
+
     n = G.shape[0]
     # Handle cases where A is empty or None
     if A is None or A.size == 0:
