@@ -28,11 +28,16 @@ class TestConstrained(unittest.TestCase):
     def test_sqp(self):
         # min x^2 + y^2 s.t. x + y = 2
         # Global min at (1, 1)
-        f = lambda x: x[0]**2 + x[1]**2
-        grad_f = lambda x: np.array([2*x[0], 2*x[1]])
-        hess_f = lambda x: np.array([[2, 0], [0, 2]])
-        h = lambda x: np.array([x[0] + x[1] - 2])
-        grad_h = lambda x: np.array([1, 1])
+        def f(x):
+            return x[0]**2 + x[1]**2
+        def grad_f(x):
+            return np.array([2*x[0], 2*x[1]])
+        def hess_f(x):
+            return np.array([[2, 0], [0, 2]])
+        def h(x):
+            return np.array([x[0] + x[1] - 2])
+        def grad_h(x):
+            return np.array([1, 1])
         x0 = [0.0, 0.0]
         
         x_opt, _ = sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-4)
@@ -40,12 +45,17 @@ class TestConstrained(unittest.TestCase):
         
     def test_barrier(self):
         # min x^2 s.t. x >= 1 => -x + 1 <= 0
-        f = lambda x: x[0]**2
-        grad_f = lambda x: np.array([2*x[0]])
-        hess_f = lambda x: np.array([[2]])
+        def f(x):
+            return x[0]**2
+        def grad_f(x):
+            return np.array([2*x[0]])
+        def hess_f(x):
+            return np.array([[2]])
         
-        g_ineq = lambda x: np.array([-x[0] + 1])
-        grad_g_ineq = lambda x: np.array([[-1.0]]) 
+        def g_ineq(x):
+            return np.array([-x[0] + 1])
+        def grad_g_ineq(x):
+            return np.array([[-1.0]])
         
         x0 = [2.0]
         # Barrier needs feasible start. 2 >= 1.
@@ -64,6 +74,23 @@ class TestConstrained(unittest.TestCase):
         
         x_opt, _ = primal_dual_qp(G, c, A, b, x0, z0, tol=1e-4)
         np.testing.assert_allclose(x_opt, [0.5, 0.5], atol=1e-3)
+
+    def test_primal_dual_validation(self):
+        from karush.constrained.primal_dual import primal_dual_qp
+        G = np.eye(2)
+        c = np.array([np.nan, 0.0])
+        A = np.array([[1.0, 1.0]])
+        b = np.array([1.0])
+        x0 = [0.1, 0.9]
+        z0 = [1.0, 1.0]
+
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c, A, b, x0, z0)
+
+        c = np.zeros(2)
+        A = np.array([[1.0, np.inf]])
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c, A, b, x0, z0)
 
 if __name__ == '__main__':
     unittest.main()
