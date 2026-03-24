@@ -10,6 +10,15 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     This is a simplified implementation.
     G must be positive semidefinite.
     """
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(G)) or not np.all(np.isfinite(c)):
+        raise ValueError("Input arrays G and c must contain only finite numbers.")
+    if not np.all(np.isfinite(A)) or not np.all(np.isfinite(b)):
+        raise ValueError("Constraint arrays A and b must contain only finite numbers.")
+    if not np.all(np.isfinite(x0)) or not np.all(np.isfinite(z0)):
+        raise ValueError("Initial points x0 and z0 must contain only finite numbers.")
+
     x = np.array(x0, dtype=float)
     # Actually for standard form, x itself is constrained >= 0.
     # Standard form usually: min c'x, Ax=b, x>=0. For QP: min 0.5 x'Gx + c'x, Ax=b, x>=0.
