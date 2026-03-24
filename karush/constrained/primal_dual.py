@@ -55,11 +55,14 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # G dx - A^T dy - X^-1 ( ... - Z dx ) = -r_L
         # ( G + X^-1 Z ) dx - A^T dy = -r_L + X^-1 ( -r_C + sigma*mu*e )
         
-        X_inv = np.diag(1.0 / x)
-        Z = np.diag(z)
-        M = G + X_inv @ Z
+        # Performance optimization: Avoid creating dense O(n^2) diagonal matrices
+        # and performing O(n^3) matrix multiplication. Instead, compute the
+        # diagonal elements directly in O(n) and use vectorized operations.
+        # This replaces `X_inv = np.diag(1/x)`, `Z = np.diag(z)`, `M = G + X_inv @ Z`
+        M = G + np.diag(z / x)
         
-        rhs_1 = -r_L + X_inv @ ( -r_C + sigma * mu * np.ones(n) )
+        # Avoid `X_inv @ vector` which is O(n^2) by using element-wise division O(n)
+        rhs_1 = -r_L + ( -r_C + sigma * mu * np.ones(n) ) / x
         rhs_2 = -r_A
         
         # System:

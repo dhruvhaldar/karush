@@ -11,7 +11,6 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     intended for demonstration purposes.
     """
     x = np.array(x0, dtype=float)
-    n = len(x)
     history = [x.copy()]
     
     for k in range(max_iter):
