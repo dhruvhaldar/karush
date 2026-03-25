@@ -47,6 +47,17 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     
     This is a basic implementation for small-scale SDPs.
     """
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(C)):
+        raise ValueError("Input array C must contain only finite numbers.")
+    if not np.all(np.isfinite(b)):
+        raise ValueError("Constraint array b must contain only finite numbers.")
+    if not np.all([np.all(np.isfinite(A)) for A in A_list]):
+        raise ValueError("Constraint matrices A_list must contain only finite numbers.")
+    if not np.all(np.isfinite(X0)):
+        raise ValueError("Initial point X0 must contain only finite numbers.")
+
     X = np.array(X0, dtype=float)
     mu = initial_mu
     m = len(b)
