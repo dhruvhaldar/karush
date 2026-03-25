@@ -41,7 +41,9 @@ def randomized_rounding(X, num_trials=100):
         w[w < 0] = 0
         # Reconstruct L such that L @ L.T approx X
         # X = V D V.T = (V D^0.5) (V D^0.5).T
-        L = v @ np.diag(np.sqrt(w))
+        # Performance optimization: Avoid dense O(n^3) matrix multiplication with np.diag.
+        # Use O(n^2) broadcasting to scale columns of v by sqrt(w).
+        L = v * np.sqrt(w)
         
     # Security: Use a securely seeded PRNG to prevent predictable randomized rounding
     # which can be a risk if used in cryptography or network security contexts.
