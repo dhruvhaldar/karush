@@ -92,5 +92,28 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             primal_dual_qp(G, c, A, b, x0, z0)
 
+    def test_sdp_barrier_validation(self):
+        from karush.semidefinite.interior_point import solve_sdp_barrier
+        C = np.eye(2)
+        A_list = [np.eye(2)]
+        b = np.array([1.0])
+        X0 = np.eye(2)
+
+        C_nan = np.array([[np.nan, 0.0], [0.0, 1.0]])
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C_nan, A_list, b, X0)
+
+        b_inf = np.array([np.inf])
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b_inf, X0)
+
+        A_list_inf = [np.array([[np.inf, 0.0], [0.0, 1.0]])]
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list_inf, b, X0)
+
+        X0_nan = np.array([[1.0, 0.0], [0.0, np.nan]])
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b, X0_nan)
+
 if __name__ == '__main__':
     unittest.main()
