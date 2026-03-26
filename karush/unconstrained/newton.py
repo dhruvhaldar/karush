@@ -16,6 +16,11 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         x_opt: Optimal solution.
         history: List of iterates.
     """
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(x0)):
+        raise ValueError("Initial guess x0 must contain only finite numbers.")
+
     x = np.array(x0, dtype=float)
     history = [x.copy()]
     
