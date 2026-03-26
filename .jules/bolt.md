@@ -5,3 +5,7 @@
 ## 2024-05-24 - Avoid Dense Matrix Products for Diagonal Matrices
 **Learning:** In NumPy, constructing diagonal matrices using `np.diag()` and then multiplying them with other matrices (e.g., `np.diag(a) @ np.diag(b)`) creates full dense matrices and performs an O(n^3) multiplication. This is a severe performance anti-pattern in iterative algorithms like Interior Point Methods.
 **Action:** Always compute the element-wise product of the diagonals directly (e.g., `np.diag(a * b)`) or use broadcasting `(a * b)[:, None]` instead of explicit matrix multiplications when dealing with diagonal matrices.
+
+## 2025-05-19 - Vectorized Randomized Rounding Matrix Multiplications
+**Learning:** In randomized rounding algorithms for Max-Cut and similar SDP relaxations, performing multiple matrix-vector multiplications in a loop (e.g., `L @ r` where `r` is a vector) is inefficient due to Python loop overhead and lack of BLAS Level 3 optimization.
+**Action:** Replace the loop with a single matrix-matrix multiplication (e.g., `L @ R` where `R` is a matrix of standard normal samples). This yields a significant performance improvement by fully utilizing vectorized NumPy operations and optimized linear algebra libraries.
