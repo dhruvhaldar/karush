@@ -49,12 +49,14 @@ def randomized_rounding(X, num_trials=100):
     # which can be a risk if used in cryptography or network security contexts.
     rng = np.random.default_rng(secrets.randbits(128))
 
-    candidates = []
-    for _ in range(num_trials):
-        r = rng.standard_normal(n)
-        # x = sign(L @ r)
-        x = np.sign(L @ r)
-        x[x == 0] = 1
-        candidates.append(x)
+    # Performance optimization: Replace loop over matrix-vector multiplications
+    # with a single matrix-matrix multiplication (BLAS Level 3) for significant speedup.
+    # O(n^2 * num_trials) operations are heavily optimized when vectorized.
+    R = rng.standard_normal((n, num_trials))
+    X_sign = np.sign(L @ R)
+    X_sign[X_sign == 0] = 1
+
+    # Convert columns of the (n, num_trials) matrix into a list of 1D arrays
+    candidates = list(X_sign.T)
         
     return candidates
