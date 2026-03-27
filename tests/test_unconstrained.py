@@ -30,5 +30,12 @@ class TestUnconstrained(unittest.TestCase):
         x, _ = conjugate_gradient(self.f, self.grad_f, self.x0)
         np.testing.assert_allclose(x, self.solution, atol=1e-5)
 
+    def test_bfgs_validation(self):
+        with self.assertRaises(ValueError):
+            bfgs_method(self.f, self.grad_f, [np.nan, 0.0])
+
+        with self.assertRaises(ValueError):
+            bfgs_method(self.f, self.grad_f, [0.0, np.inf])
+
 if __name__ == '__main__':
     unittest.main()
