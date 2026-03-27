@@ -68,6 +68,23 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     # trace(A_i @ X) = svec(A_i).T @ svec(X)
     A_mat = np.array([svec(Ai) for Ai in A_list]) # m x dim_vec
     
+    # Precompute indices and weights for true O(n^4) vectorized Hessian construction
+    idx_a = []
+    idx_b = []
+    W_svec = []
+    for i in range(n):
+        for j in range(i, n):
+            idx_a.append(i)
+            idx_b.append(j)
+            if i == j:
+                W_svec.append(1.0)
+            else:
+                W_svec.append(np.sqrt(2))
+    idx_a = np.array(idx_a)
+    idx_b = np.array(idx_b)
+    W_svec = np.array(W_svec)
+    W_mat = W_svec[:, None] * W_svec[None, :]
+
     for k in range(max_iter):
         
         if mu < tol:
@@ -85,17 +102,17 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             grad_vec = svec(Grad)
             
             # Hessian of barrier objective: H(D) = mu * X^-1 @ D @ X^-1
-            H_mat = np.zeros((dim_vec, dim_vec))
+            # Performance optimization: Replace the O(n^5) loop with a true O(n^4)
+            # direct computation using the algebraic expansion of X_inv @ D @ X_inv.
+            Vac = X_inv[idx_a[:, None], idx_a[None, :]]
+            Vbd = X_inv[idx_b[:, None], idx_b[None, :]]
+            Vad = X_inv[idx_a[:, None], idx_b[None, :]]
+            Vbc = X_inv[idx_b[:, None], idx_a[None, :]]
             
-            # Construct Hessian matrix
-            for col in range(dim_vec):
-                e_col = np.zeros(dim_vec)
-                e_col[col] = 1.0
-                D = smat(e_col, n)
-                
-                res = mu * X_inv @ D @ X_inv
-                res_vec = svec(res)
-                H_mat[:, col] = res_vec
+            M = Vac * Vbd + Vad * Vbc
+            # Adjust scaling by 0.5 because D has symmetric off-diagonal elements divided by sqrt(2)
+            # The exact derivation yields W_svec factors and a 0.5 coefficient.
+            H_mat = (mu * 0.5) * W_mat * M
             
             # KKT System
             residuals = A_mat @ svec(X) - np.array(b)
