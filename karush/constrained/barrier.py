@@ -43,8 +43,12 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # hess phi = hess f + sum( 1/g_i^2 * grad g_i * grad g_i^T ) + sum( -1/g_i * hess g_i )
             # Simplified: ignore hess g_i term (Gauss-Newton like approx)
             hess_phi = hess_f(x).astype(float)
-            for i in range(len(g_val)):
-                 hess_phi += (mu / g_val[i]**2) * np.outer(grad_g_val[i], grad_g_val[i])
+
+            # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
+            # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
+            # We avoid creating a dense O(m^2) diagonal matrix by broadcasting weights.
+            weights = mu / (g_val**2)
+            hess_phi += (grad_g_val.T * weights) @ grad_g_val
             
             try:
                 p = np.linalg.solve(hess_phi, -grad_phi)
