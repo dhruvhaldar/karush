@@ -5,6 +5,11 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     Nonlinear Conjugate Gradient method (Fletcher-Reeves).
     """
     x = np.array(x0, dtype=float)
+
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(x)):
+        raise ValueError("Initial guess x0 must contain only finite numbers.")
     history = [x.copy()]
     g = grad_f(x)
     p = -g

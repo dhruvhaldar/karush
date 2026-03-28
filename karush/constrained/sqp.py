@@ -11,6 +11,11 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     intended for demonstration purposes.
     """
     x = np.array(x0, dtype=float)
+
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(x)):
+        raise ValueError("Initial guess x0 must contain only finite numbers.")
     history = [x.copy()]
     
     for k in range(max_iter):

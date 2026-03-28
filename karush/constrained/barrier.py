@@ -11,6 +11,11 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     but assumes the function behaves well locally.
     """
     x = np.array(x0, dtype=float)
+
+    # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
+    # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
+    if not np.all(np.isfinite(x)):
+        raise ValueError("Initial guess x0 must contain only finite numbers.")
     mu = mu0
     history = [x.copy()]
     
