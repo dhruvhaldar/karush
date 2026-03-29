@@ -12,3 +12,8 @@
 **Vulnerability:** Core mathematical optimization functions lacked input validation for `NaN` and `Inf` values. Passing tainted data into solvers can cause unhandled exceptions during matrix operations or lead to infinite loops inside the line search mechanisms.
 **Learning:** In scientific and optimization code, algorithms heavily rely on numeric stability. Unsanitized input propagates rapidly through matrix inversion and updates, acting as an application-level DoS vector or corrupting calculations silently.
 **Prevention:** Validate input arrays at the entry point of all solver functions (e.g., using `np.isfinite()`) to ensure the problem data is well-formed before starting algorithmic loops.
+
+## 2023-10-27 - [Configuration Validation for DoS Prevention]
+**Vulnerability:** Missing validation for optimization parameters `tol` and `max_iter` could allow users to pass negative tolerances or extremely large/invalid iteration counts, leading to infinite loops or memory exhaustion (due to unbounded history appending).
+**Learning:** In applied math libraries like `karush`, parameter validation is critical because the optimization loops depend on them for termination. Leaving them unchecked can result in silent data corruption or DoS vectors.
+**Prevention:** Always validate configuration parameters such as `tol > 0` and `max_iter` as positive integers before starting optimization loops.
