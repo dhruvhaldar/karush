@@ -76,20 +76,12 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     A_mat = np.array([svec(Ai) for Ai in A_list]) # m x dim_vec
     
     # Precompute indices and weights for true O(n^4) vectorized Hessian construction
-    idx_a = []
-    idx_b = []
-    W_svec = []
-    for i in range(n):
-        for j in range(i, n):
-            idx_a.append(i)
-            idx_b.append(j)
-            if i == j:
-                W_svec.append(1.0)
-            else:
-                W_svec.append(np.sqrt(2))
-    idx_a = np.array(idx_a)
-    idx_b = np.array(idx_b)
-    W_svec = np.array(W_svec)
+    # Performance optimization: Replace nested Python loops with NumPy advanced indexing.
+    # Computing idx_a, idx_b and W_svec directly provides significant speedup for large matrices.
+    idx_a, idx_b = np.triu_indices(n)
+    W_svec = np.full(len(idx_a), np.sqrt(2))
+    W_svec[idx_a == idx_b] = 1.0
+
     W_mat = W_svec[:, None] * W_svec[None, :]
 
     for k in range(max_iter):
