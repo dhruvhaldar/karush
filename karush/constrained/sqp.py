@@ -16,6 +16,11 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(x)):
         raise ValueError("Initial guess x0 must contain only finite numbers.")
+    if tol <= 0:
+        raise ValueError("Tolerance tol must be strictly positive.")
+    if not isinstance(max_iter, int) or max_iter <= 0:
+        raise ValueError("Maximum iterations max_iter must be a positive integer.")
+
     history = [x.copy()]
     
     for k in range(max_iter):
