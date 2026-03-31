@@ -17,3 +17,7 @@
 ## 2025-06-25 - Vectorizing Symmetric Matrix Representation (svec/smat)
 **Learning:** In interior point methods for Semidefinite Programming, mapping symmetric matrices to vectors (`svec`) and back (`smat`) using nested Python loops (`for i in range(n): for j in range(i, n):`) is a significant bottleneck. Python loop overhead for element-wise operations on arrays creates terrible performance.
 **Action:** Replace nested loops with vectorized operations using NumPy advanced indexing, specifically `np.triu_indices(n)` to extract and assign values in bulk, combined with boolean masks for scaling off-diagonal elements. This provides a dramatic speedup (e.g., ~80x for 200x200 matrices).
+
+## 2024-03-31 - Grouping Outer Products for Rank-k Updates
+**Learning:** Performing multiple `np.outer` calls and adding them together in a loop or equation is significantly slower than combining them into a single rank-k matrix multiplication using `np.column_stack` or similar constructions.
+**Action:** When computing sums of outer products (e.g., `A @ B.T + C @ D.T`), combine them into a single matrix multiplication `np.column_stack([A, C]) @ np.column_stack([B, D]).T` to fully leverage BLAS Level 3 optimization.
