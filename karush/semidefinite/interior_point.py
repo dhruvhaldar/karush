@@ -64,6 +64,10 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
         raise ValueError("Constraint matrices A_list must contain only finite numbers.")
     if not np.all(np.isfinite(X0)):
         raise ValueError("Initial point X0 must contain only finite numbers.")
+    if tol <= 0:
+        raise ValueError("Tolerance tol must be strictly positive.")
+    if not isinstance(max_iter, int) or max_iter <= 0:
+        raise ValueError("Maximum iterations max_iter must be a positive integer.")
 
     X = np.array(X0, dtype=float)
     mu = initial_mu

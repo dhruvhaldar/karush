@@ -15,6 +15,10 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(W)):
         raise ValueError("Input array W must contain only finite numbers.")
+    if tol <= 0:
+        raise ValueError("Tolerance tol must be strictly positive.")
+    if not isinstance(max_iter, int) or max_iter <= 0:
+        raise ValueError("Maximum iterations max_iter must be a positive integer.")
 
     n = W.shape[0]
     

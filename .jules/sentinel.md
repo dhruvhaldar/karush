@@ -17,3 +17,8 @@
 **Vulnerability:** Missing validation for optimization parameters `tol` and `max_iter` could allow users to pass negative tolerances or extremely large/invalid iteration counts, leading to infinite loops or memory exhaustion (due to unbounded history appending).
 **Learning:** In applied math libraries like `karush`, parameter validation is critical because the optimization loops depend on them for termination. Leaving them unchecked can result in silent data corruption or DoS vectors.
 **Prevention:** Always validate configuration parameters such as `tol > 0` and `max_iter` as positive integers before starting optimization loops.
+
+## 2024-05-20 - Missing bounds checks for tolerance and iterations
+**Vulnerability:** DoS (Denial of Service) vulnerability due to missing bounds checking on `tol` (tolerance) and `max_iter` (maximum iterations) parameters in iterative optimization algorithms.
+**Learning:** Mathematical solvers often use `tol` to evaluate convergence and `max_iter` to prevent infinite loops. If these inputs aren't sanitized, malicious users could provide a negative `tol` (making convergence impossible) or an enormous `max_iter`, causing the server to exhaust CPU resources in an infinite or extremely long-running loop.
+**Prevention:** Always validate that `tol` is strictly positive (`tol > 0`) and `max_iter` is a reasonably bounded positive integer before entering iterative loops.
