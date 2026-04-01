@@ -40,6 +40,13 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     
     history = [x.copy()]
     
+    # Performance optimization: Replace np.block and np.concatenate with pre-allocation
+    # outside the loop. In the loop, only update the blocks that change.
+    KKT = np.zeros((n + m, n + m))
+    KKT[:n, n:] = -A.T
+    KKT[n:, :n] = A
+    rhs = np.empty(n + m)
+
     for k in range(max_iter):
         # Residuals
         r_L = G @ x + c - A.T @ y - z
@@ -73,12 +80,9 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # [ M  -A^T ] [ dx ] = [ rhs_1 ]
         # [ A   0   ] [ dy ]   [ rhs_2 ]
         
-        KKT = np.block([
-            [M, -A.T],
-            [A, np.zeros((m, m))]
-        ])
-        
-        rhs = np.concatenate([rhs_1, rhs_2])
+        KKT[:n, :n] = M
+        rhs[:n] = rhs_1
+        rhs[n:] = rhs_2
         
         try:
             sol = np.linalg.solve(KKT, rhs)
