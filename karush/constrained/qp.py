@@ -25,12 +25,16 @@ def solve_eq_qp(G, c, A, b):
         
     m = A.shape[0]
     
-    KKT_mat = np.block([
-        [G, A.T],
-        [A, np.zeros((m, m))]
-    ])
+    # Performance optimization: Replace np.block and np.concatenate with pre-allocation
+    # and direct assignment. np.block creates unnecessary memory allocations and copies.
+    KKT_mat = np.zeros((n + m, n + m))
+    KKT_mat[:n, :n] = G
+    KKT_mat[:n, n:] = A.T
+    KKT_mat[n:, :n] = A
     
-    rhs = np.concatenate([-c, b])
+    rhs = np.empty(n + m)
+    rhs[:n] = -c
+    rhs[n:] = b
     
     try:
         sol = np.linalg.solve(KKT_mat, rhs)

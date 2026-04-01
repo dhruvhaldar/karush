@@ -88,6 +88,13 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
 
     W_mat = W_svec[:, None] * W_svec[None, :]
 
+    # Performance optimization: Replace np.block and np.concatenate with pre-allocation
+    # outside the loop. In the loop, only update the blocks that change.
+    KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
+    KKT_lhs[:dim_vec, dim_vec:] = A_mat.T
+    KKT_lhs[dim_vec:, :dim_vec] = A_mat
+    rhs = np.empty(dim_vec + m)
+
     for k in range(max_iter):
         
         if mu < tol:
@@ -120,12 +127,9 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # KKT System
             residuals = A_mat @ svec(X) - np.array(b)
             
-            KKT_lhs = np.block([
-                [H_mat, A_mat.T],
-                [A_mat, np.zeros((m, m))]
-            ])
-            
-            rhs = np.concatenate([-grad_vec, -residuals])
+            KKT_lhs[:dim_vec, :dim_vec] = H_mat
+            rhs[:dim_vec] = -grad_vec
+            rhs[dim_vec:] = -residuals
             
             try:
                 sol = np.linalg.solve(KKT_lhs, rhs)
