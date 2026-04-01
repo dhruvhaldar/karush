@@ -46,6 +46,8 @@ def randomized_rounding(X, num_trials=100):
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(X)):
         raise ValueError("Input array X must contain only finite numbers.")
+    if not isinstance(num_trials, int) or num_trials <= 0:
+        raise ValueError("num_trials must be a positive integer.")
 
     n = X.shape[0]
     try:

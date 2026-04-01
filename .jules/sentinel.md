@@ -22,3 +22,8 @@
 **Vulnerability:** DoS (Denial of Service) vulnerability due to missing bounds checking on `tol` (tolerance) and `max_iter` (maximum iterations) parameters in iterative optimization algorithms.
 **Learning:** Mathematical solvers often use `tol` to evaluate convergence and `max_iter` to prevent infinite loops. If these inputs aren't sanitized, malicious users could provide a negative `tol` (making convergence impossible) or an enormous `max_iter`, causing the server to exhaust CPU resources in an infinite or extremely long-running loop.
 **Prevention:** Always validate that `tol` is strictly positive (`tol > 0`) and `max_iter` is a reasonably bounded positive integer before entering iterative loops.
+
+## 2024-05-24 - Missing bounds checks for integer parameters
+**Vulnerability:** Application DoS vulnerability due to missing type and bounds checking on numeric parameters (like `num_trials`).
+**Learning:** When iterative limits or sizes depend on user input, failure to validate the input type and bounds can lead to OOM crashes or unhandled exceptions.
+**Prevention:** Always validate parameters (like `num_trials > 0`) before using them in algorithms.
