@@ -48,6 +48,10 @@ def randomized_rounding(X, num_trials=100):
         raise ValueError("Input array X must contain only finite numbers.")
     if not isinstance(num_trials, int) or num_trials <= 0:
         raise ValueError("num_trials must be a positive integer.")
+    # Security Enhancement: Bound num_trials to prevent memory exhaustion (OOM DoS vulnerabilities)
+    # when allocating arrays of size O(n^2 * num_trials).
+    if num_trials > 100000:
+        raise ValueError("num_trials exceeds safe maximum limit to prevent memory exhaustion.")
 
     n = X.shape[0]
     try:
