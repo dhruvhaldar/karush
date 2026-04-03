@@ -18,8 +18,13 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     g = grad_f(x)
     p = -g
     
+    # Performance optimization: Cache the squared gradient norm (vector dot product)
+    # to avoid redundant O(n) computations across the iteration for both the stopping
+    # criterion and the Fletcher-Reeves update formula.
+    g_norm_sq = np.dot(g, g)
+
     for k in range(max_iter):
-        if np.linalg.norm(g) < tol:
+        if np.sqrt(g_norm_sq) < tol:
             break
             
         # Line search
@@ -41,7 +46,8 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         g_new = grad_f(x_new)
         
         # Fletcher-Reeves update
-        beta = np.dot(g_new, g_new) / (np.dot(g, g) + 1e-10)
+        g_new_norm_sq = np.dot(g_new, g_new)
+        beta = g_new_norm_sq / (g_norm_sq + 1e-10)
         p_new = -g_new + beta * p
         
         # FIX: Reset to steepest descent if not a descent direction
@@ -51,6 +57,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         p = p_new
         
         g = g_new
+        g_norm_sq = g_new_norm_sq
         x = x_new
         history.append(x.copy())
         

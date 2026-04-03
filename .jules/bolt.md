@@ -22,6 +22,10 @@
 **Learning:** Performing multiple `np.outer` calls and adding them together in a loop or equation is significantly slower than combining them into a single rank-k matrix multiplication using `np.column_stack` or similar constructions.
 **Action:** When computing sums of outer products (e.g., `A @ B.T + C @ D.T`), combine them into a single matrix multiplication `np.column_stack([A, C]) @ np.column_stack([B, D]).T` to fully leverage BLAS Level 3 optimization.
 
+## 2026-10-27 - Caching Expensive Array Operations in Iterative Algorithms
+**Learning:** In iterative optimization algorithms like Conjugate Gradient, recalculating the same vector dot products (e.g., squared gradient norms) multiple times per iteration for stopping criteria and updates introduces redundant O(n) computations.
+**Action:** Always compute expensive array operations once, store them in a local variable (e.g., `g_norm_sq = np.dot(g, g)`), and reuse the cached value throughout the iteration to avoid unnecessary recalculation overhead.
+
 ## 2026-08-11 - Pre-allocating the KKT matrix inside iterative optimization algorithms
 **Learning:** Using `np.block` and `np.concatenate` inside an iterative optimization loop (e.g., in Primal-Dual methods, SQP, or SDP Interior Point solvers) is a massive performance anti-pattern. These functions allocate new arrays and perform multiple data copies in every single iteration, even for the structural constraints blocks `A` and `A.T` that never change.
 **Action:** Always pre-allocate the full block matrix `KKT_mat = np.zeros(...)` and right-hand side vector `rhs = np.empty(...)` *before* the loop. Assign static blocks like `A` and `A.T` once. Inside the loop, directly assign only the sub-matrices that change (e.g., `KKT_mat[:n, :n] = H`). This prevents memory allocation overhead and provides >8x speedup for the KKT matrix construction.
