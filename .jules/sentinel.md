@@ -27,3 +27,8 @@
 **Vulnerability:** Application DoS vulnerability due to missing type and bounds checking on numeric parameters (like `num_trials`).
 **Learning:** When iterative limits or sizes depend on user input, failure to validate the input type and bounds can lead to OOM crashes or unhandled exceptions.
 **Prevention:** Always validate parameters (like `num_trials > 0`) before using them in algorithms.
+
+## 2025-02-15 - Missing bounds checks for initial barrier parameters
+**Vulnerability:** Application DoS vulnerability due to missing bounds checking on `mu0` and `initial_mu` parameters in barrier/interior point algorithms.
+**Learning:** When iterative optimization algorithms use initial barrier parameters without validation, negative or zero values can cause division by zero errors during early iterations, leading to unhandled exceptions and DoS.
+**Prevention:** Always validate initial barrier parameters (like `mu0 > 0` and `initial_mu > 0`) before entering iterative optimization loops.
