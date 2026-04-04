@@ -25,3 +25,7 @@
 ## 2026-08-11 - Pre-allocating the KKT matrix inside iterative optimization algorithms
 **Learning:** Using `np.block` and `np.concatenate` inside an iterative optimization loop (e.g., in Primal-Dual methods, SQP, or SDP Interior Point solvers) is a massive performance anti-pattern. These functions allocate new arrays and perform multiple data copies in every single iteration, even for the structural constraints blocks `A` and `A.T` that never change.
 **Action:** Always pre-allocate the full block matrix `KKT_mat = np.zeros(...)` and right-hand side vector `rhs = np.empty(...)` *before* the loop. Assign static blocks like `A` and `A.T` once. Inside the loop, directly assign only the sub-matrices that change (e.g., `KKT_mat[:n, :n] = H`). This prevents memory allocation overhead and provides >8x speedup for the KKT matrix construction.
+
+## 2025-02-14 - Cache Gradient Dot Products in Conjugate Gradient
+**Learning:** In iterative optimization algorithms like Conjugate Gradient, caching expensive array operations such as vector dot products (e.g., squared gradient norms) that are reused across the iteration (e.g., for both stopping criteria and update steps) is essential to avoid redundant O(n) computations.
+**Action:** Always check iterative loops for expensive vector/matrix operations that can be computed once per iteration and reused, especially when calculating stopping criteria and update factors.
