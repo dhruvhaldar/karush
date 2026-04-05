@@ -62,6 +62,20 @@ class TestConstrained(unittest.TestCase):
         x_opt, _ = barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, tol=1e-4)
         np.testing.assert_allclose(x_opt, [1.0], atol=1e-3)
 
+    def test_barrier_validation(self):
+        def f(x): return x[0]**2
+        def grad_f(x): return np.array([2*x[0]])
+        def hess_f(x): return np.array([[2]])
+        def g_ineq(x): return np.array([-x[0] + 1])
+        def grad_g_ineq(x): return np.array([[-1.0]])
+        x0 = [2.0]
+
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=0.0)
+
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=-1.0)
+
     def test_primal_dual(self):
         from karush.constrained.primal_dual import primal_dual_qp
         # min 0.5 (x1^2 + x2^2) s.t. x1+x2=1, x>=0
@@ -114,6 +128,19 @@ class TestConstrained(unittest.TestCase):
         X0_nan = np.array([[1.0, 0.0], [0.0, np.nan]])
         with self.assertRaises(ValueError):
             solve_sdp_barrier(C, A_list, b, X0_nan)
+
+    def test_interior_point_initial_mu_validation(self):
+        from karush.semidefinite.interior_point import solve_sdp_barrier
+        C = np.eye(2)
+        A_list = [np.eye(2)]
+        b = np.array([1.0])
+        X0 = np.eye(2)
+
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b, X0, initial_mu=0.0)
+
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b, X0, initial_mu=-1.0)
 
 if __name__ == '__main__':
     unittest.main()
