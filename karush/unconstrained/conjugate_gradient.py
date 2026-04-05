@@ -16,10 +16,11 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
     history = [x.copy()]
     g = grad_f(x)
+    g_norm_sq = np.dot(g, g)
     p = -g
     
     for k in range(max_iter):
-        if np.linalg.norm(g) < tol:
+        if np.sqrt(g_norm_sq) < tol:
             break
             
         # Line search
@@ -40,8 +41,13 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         x_new = x + alpha * p
         g_new = grad_f(x_new)
         
+        # Performance optimization: Cache expensive vector dot products.
+        # Computing the norm squared once and reusing it avoids redundant O(n) operations
+        # per iteration for the stopping criteria and Fletcher-Reeves update.
+        g_new_norm_sq = np.dot(g_new, g_new)
+
         # Fletcher-Reeves update
-        beta = np.dot(g_new, g_new) / (np.dot(g, g) + 1e-10)
+        beta = g_new_norm_sq / (g_norm_sq + 1e-10)
         p_new = -g_new + beta * p
         
         # FIX: Reset to steepest descent if not a descent direction
@@ -51,6 +57,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         p = p_new
         
         g = g_new
+        g_norm_sq = g_new_norm_sq
         x = x_new
         history.append(x.copy())
         
