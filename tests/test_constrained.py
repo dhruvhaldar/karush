@@ -142,5 +142,16 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             solve_sdp_barrier(C, A_list, b, X0, initial_mu=-1.0)
 
+    def test_sqp_max_iter_bound(self):
+        def f(x): return x[0]**2 + x[1]**2
+        def grad_f(x): return np.array([2*x[0], 2*x[1]])
+        def hess_f(x): return np.array([[2, 0], [0, 2]])
+        def h(x): return np.array([x[0] + x[1] - 2])
+        def grad_h(x): return np.array([1, 1])
+        x0 = [0.0, 0.0]
+
+        with self.assertRaises(ValueError):
+            sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, max_iter=10001)
+
 if __name__ == '__main__':
     unittest.main()

@@ -22,6 +22,9 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         raise ValueError("Tolerance tol must be strictly positive.")
     if not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
+    # Security Enhancement: Bound max_iter to prevent resource exhaustion (CPU/Memory DoS vulnerabilities).
+    if max_iter > 10000:
+        raise ValueError("Maximum iterations max_iter exceeds safe upper bound limit.")
 
     x = np.array(x0, dtype=float)
     # Actually for standard form, x itself is constrained >= 0.

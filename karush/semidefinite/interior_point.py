@@ -68,6 +68,9 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
         raise ValueError("Tolerance tol must be strictly positive.")
     if not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
+    # Security Enhancement: Bound max_iter to prevent resource exhaustion (CPU/Memory DoS vulnerabilities).
+    if max_iter > 10000:
+        raise ValueError("Maximum iterations max_iter exceeds safe upper bound limit.")
     if initial_mu <= 0:
         raise ValueError("Barrier parameter initial_mu must be strictly positive.")
 

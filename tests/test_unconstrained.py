@@ -37,5 +37,9 @@ class TestUnconstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             bfgs_method(self.f, self.grad_f, [0.0, np.inf])
 
+    def test_newton_max_iter_bound(self):
+        with self.assertRaises(ValueError):
+            newton_method(self.f, self.grad_f, self.hess_f, self.x0, max_iter=10001)
+
 if __name__ == '__main__':
     unittest.main()

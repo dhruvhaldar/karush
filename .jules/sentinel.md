@@ -31,3 +31,7 @@
 **Vulnerability:** Core functions `barrier_method` and `solve_sdp_barrier` accepted non-positive values (e.g., `<= 0`) for `mu0` and `initial_mu`, leading to potential division by zero and unhandled exceptions (Denial of Service).
 **Learning:** In barrier and interior point algorithms in `karush`, the initial penalty parameter must strictly be positive (`> 0`). Missing validation allows unexpected program termination which is critical in robust mathematical optimization libraries.
 **Prevention:** Always ensure initial barrier parameters (e.g., `mu0`, `initial_mu`) are validated to be strictly positive at the start of the functions.
+## 2024-05-24 - Unbounded max_iter Parameter
+**Vulnerability:** DoS (Denial of Service) vulnerability due to missing upper bound on the `max_iter` parameter in all core optimization functions.
+**Learning:** Even if `max_iter` is validated as a positive integer, malicious inputs with extremely high values (e.g., millions) can exhaust server memory (due to `history.append()`) and CPU.
+**Prevention:** Ensure parameters controlling loops and allocations have a sensible upper limit (e.g., 10,000) to mitigate resource exhaustion vulnerabilities.
