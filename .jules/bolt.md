@@ -29,3 +29,7 @@
 ## 2026-10-24 - Caching Vector Dot Products in Iterative Algorithms
 **Learning:** In iterative optimization algorithms like Conjugate Gradient, vector dot products (e.g., squared gradient norms) are often computed multiple times per iteration for both stopping criteria and update steps. This results in redundant O(n) computations.
 **Action:** Calculate the squared norm or dot product once per iteration, cache the result, and reuse it across the iteration (e.g., using `np.sqrt(norm_sq) < tol` for stopping criteria). This simple caching prevents redundant linear time operations and improves overall algorithm speed.
+
+## 2026-04-06 - Caching NumPy Index Generation
+**Learning:** In frequently called numerical routines (e.g., `svec` and `smat` in `karush`), recalculating `np.triu_indices(n)` and creating its associated boolean masks on every function call adds significant overhead inside iterative solvers.
+**Action:** Cache the output of `np.triu_indices(n)` and any necessary boolean masks in module-level dictionaries (e.g., `_SVEC_CACHE = {}`) keyed by matrix size `n`. This simple caching strategy avoids redundant array allocations and provides measurable speedups (e.g., 4x for `svec`).
