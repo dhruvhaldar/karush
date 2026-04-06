@@ -27,3 +27,7 @@
 **Vulnerability:** Application DoS vulnerability due to missing type and bounds checking on numeric parameters (like `num_trials`).
 **Learning:** When iterative limits or sizes depend on user input, failure to validate the input type and bounds can lead to OOM crashes or unhandled exceptions.
 **Prevention:** Always validate parameters (like `num_trials > 0`) before using them in algorithms.
+## 2024-05-18 - Missing Validation for Initial Barrier Parameters
+**Vulnerability:** Core functions `barrier_method` and `solve_sdp_barrier` accepted non-positive values (e.g., `<= 0`) for `mu0` and `initial_mu`, leading to potential division by zero and unhandled exceptions (Denial of Service).
+**Learning:** In barrier and interior point algorithms in `karush`, the initial penalty parameter must strictly be positive (`> 0`). Missing validation allows unexpected program termination which is critical in robust mathematical optimization libraries.
+**Prevention:** Always ensure initial barrier parameters (e.g., `mu0`, `initial_mu`) are validated to be strictly positive at the start of the functions.
