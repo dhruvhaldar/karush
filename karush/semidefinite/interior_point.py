@@ -1,5 +1,15 @@
 import numpy as np
 
+# Cache for svec/smat indices to avoid redundant array allocations
+_svec_cache = {}
+
+def _get_svec_indices(n):
+    if n not in _svec_cache:
+        idx_i, idx_j = np.triu_indices(n)
+        off_diag = idx_i != idx_j
+        _svec_cache[n] = (idx_i, idx_j, off_diag)
+    return _svec_cache[n]
+
 def svec(M):
     """
     Symmetric vectorization operator.
@@ -11,11 +21,10 @@ def svec(M):
     # Performance optimization: Replace nested Python loops with NumPy advanced indexing.
     # Extracting upper triangle elements and vectorizing off-diagonal scaling
     # provides ~80x speedup for 200x200 matrices.
-    idx_i, idx_j = np.triu_indices(n)
+    idx_i, idx_j, off_diag = _get_svec_indices(n)
     v = M[idx_i, idx_j].copy()
 
     # Multiply off-diagonal elements by sqrt(2)
-    off_diag = idx_i != idx_j
     v[off_diag] *= np.sqrt(2)
 
     return v
@@ -29,11 +38,10 @@ def smat(v, n):
     # Performance optimization: Replace nested Python loops with NumPy advanced indexing.
     # Reconstructing the symmetric matrix directly from the vector using triu_indices
     # provides ~30x speedup for 200x200 matrices.
-    idx_i, idx_j = np.triu_indices(n)
+    idx_i, idx_j, off_diag = _get_svec_indices(n)
     M[idx_i, idx_j] = v
 
     # Divide off-diagonal elements by sqrt(2)
-    off_diag = idx_i != idx_j
     M[idx_i[off_diag], idx_j[off_diag]] /= np.sqrt(2)
 
     # Ensure the matrix is symmetric by filling the lower triangle
