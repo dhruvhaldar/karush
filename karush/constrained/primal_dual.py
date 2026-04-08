@@ -45,9 +45,13 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
     KKT = np.zeros((n + m, n + m))
+    KKT[:n, :n] = G
     KKT[:n, n:] = -A.T
     KKT[n:, :n] = A
     rhs = np.empty(n + m)
+
+    diag_indices = np.diag_indices(n)
+    diag_G = np.diag(G)
 
     for k in range(max_iter):
         # Residuals
@@ -72,7 +76,8 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # and performing O(n^3) matrix multiplication. Instead, compute the
         # diagonal elements directly in O(n) and use vectorized operations.
         # This replaces `X_inv = np.diag(1/x)`, `Z = np.diag(z)`, `M = G + X_inv @ Z`
-        M = G + np.diag(z / x)
+        # Further optimized by updating KKT diagonal in-place rather than full block copy.
+        KKT[diag_indices] = diag_G + z / x
         
         # Avoid `X_inv @ vector` which is O(n^2) by using element-wise division O(n)
         rhs_1 = -r_L + ( -r_C + sigma * mu * np.ones(n) ) / x
@@ -82,7 +87,6 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # [ M  -A^T ] [ dx ] = [ rhs_1 ]
         # [ A   0   ] [ dy ]   [ rhs_2 ]
         
-        KKT[:n, :n] = M
         rhs[:n] = rhs_1
         rhs[n:] = rhs_2
         
