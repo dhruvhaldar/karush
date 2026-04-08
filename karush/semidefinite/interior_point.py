@@ -1,14 +1,12 @@
 import numpy as np
+import functools
 
 # Cache for svec/smat indices to avoid redundant array allocations
-_svec_cache = {}
-
+@functools.lru_cache(maxsize=128)
 def _get_svec_indices(n):
-    if n not in _svec_cache:
-        idx_i, idx_j = np.triu_indices(n)
-        off_diag = idx_i != idx_j
-        _svec_cache[n] = (idx_i, idx_j, off_diag)
-    return _svec_cache[n]
+    idx_i, idx_j = np.triu_indices(n)
+    off_diag = idx_i != idx_j
+    return (idx_i, idx_j, off_diag)
 
 def svec(M):
     """
