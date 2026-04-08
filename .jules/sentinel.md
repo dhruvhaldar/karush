@@ -35,3 +35,7 @@
 **Vulnerability:** Core optimization algorithms accepted arbitrarily large `max_iter` limits, leading to potential memory exhaustion (DoS) via unbounded tracking arrays (`history.append`).
 **Learning:** In purely mathematical algorithms, iteration counters inherently act as termination criteria and scale resource usage (CPU/memory). We need to place sensible upper bounds on input sizes, not just bounds on types or signs.
 **Prevention:** Always bound parameters that control iteration depths or matrix array pre-allocations/append limits to a mathematically and system-level safe maximum (e.g. `10000`) before entering `while` or `for` loops.
+## 2024-04-08 - Unbounded Cache Memory Exhaustion (DoS)
+**Vulnerability:** The module-level dictionary `_svec_cache` in `karush/semidefinite/interior_point.py` grows infinitely without any size bounds when storing `np.triu_indices` for different matrix sizes `n`.
+**Learning:** Custom caching mechanisms without eviction policies (like a simple dictionary) in long-running processes can lead to memory exhaustion attacks if an attacker can control the cache key (the matrix size `n` in this case).
+**Prevention:** Always use bounded caches, such as `functools.lru_cache(maxsize=...)`, for caching results based on potentially attacker-controlled inputs.
