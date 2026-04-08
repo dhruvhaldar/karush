@@ -20,6 +20,8 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         raise ValueError("Tolerance tol must be strictly positive.")
     if not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
+    if max_iter > 10000:
+        raise ValueError("Maximum iterations max_iter exceeds safe limit.")
 
     history = [x.copy()]
     

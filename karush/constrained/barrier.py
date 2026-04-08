@@ -20,6 +20,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
         raise ValueError("Tolerance tol must be strictly positive.")
     if not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
+    if max_iter > 10000:
+        raise ValueError("Maximum iterations max_iter exceeds safe limit.")
     if mu0 <= 0:
         raise ValueError("Barrier parameter mu0 must be strictly positive.")
     mu = mu0
