@@ -32,3 +32,7 @@
 ## 2024-05-18 - Caching np.triu_indices in svec and smat
 **Learning:** In frequently called numerical routines like `svec` and `smat` in `karush`, caching the output of `np.triu_indices(n)` and its associated boolean masks in module-level dictionaries based on matrix size `n` provides significant speedups by eliminating redundant array allocations inside iterative solver loops.
 **Action:** Cache these indices in a module-level dictionary to avoid allocating arrays repeatedly.
+
+## 2026-04-08 - In-place Diagonal Updates vs Full Matrix Addition
+**Learning:** In iterative algorithms where the only changing part of a large dense matrix `M` is its diagonal (e.g. `M = G + np.diag(z / x)` where `G` is static), creating an explicit O(n^2) diagonal matrix using `np.diag()` and adding it to the full base matrix, and then assigning the full block into a larger KKT matrix is an unnecessary O(n^2) bottleneck.
+**Action:** Pre-assign the static part (`KKT[:n, :n] = G`) outside the loop and precompute `diag_indices = np.diag_indices(n)` and `diag_G = np.diag(G)`. Inside the loop, update only the diagonal elements directly using advanced indexing (`KKT[diag_indices] = diag_G + z / x`). This reduces the update complexity from O(n^2) to O(n) and prevents memory allocations.
