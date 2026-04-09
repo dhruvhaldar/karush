@@ -47,7 +47,9 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             
             # Gradient of barrier
             # grad ( - mu * sum log(-g_i) ) = sum ( -mu/(-g_i) * (-grad_g_i) ) = sum ( -mu/g_i * grad_g_i )
-            grad_phi = grad_f(x) + np.sum((-mu/g_val)[:, None] * grad_g_val, axis=0)
+            # Performance optimization: Replaced np.sum with a direct matrix-vector dot product
+            # (BLAS Level 2 optimization) for faster computation and lower memory overhead.
+            grad_phi = grad_f(x) + (-mu/g_val) @ grad_g_val
             
             if np.linalg.norm(grad_phi) < tol:
                 break
