@@ -39,3 +39,7 @@
 **Vulnerability:** The module-level dictionary `_svec_cache` in `karush/semidefinite/interior_point.py` grows infinitely without any size bounds when storing `np.triu_indices` for different matrix sizes `n`.
 **Learning:** Custom caching mechanisms without eviction policies (like a simple dictionary) in long-running processes can lead to memory exhaustion attacks if an attacker can control the cache key (the matrix size `n` in this case).
 **Prevention:** Always use bounded caches, such as `functools.lru_cache(maxsize=...)`, for caching results based on potentially attacker-controlled inputs.
+## 2024-05-24 - Validation Bypass via NaN in Numeric Parameters
+**Vulnerability:** Numeric parameters like `tol`, `mu0`, and `initial_mu` were validated using simple inequalities (e.g., `tol <= 0`). If an attacker passes `NaN`, the inequality evaluates to `False`, bypassing the validation. This causes the loop termination conditions (e.g., `norm(g) < tol`) to always fail, forcing the algorithm to run for the maximum number of iterations.
+**Learning:** `NaN` values break standard inequality checks (`<`, `<=`, `>`, `>=` all return `False`). Attackers can exploit this to bypass positive/bounds checks, leading to forced maximum work (resource exhaustion DoS).
+**Prevention:** Always use `np.isnan()` or strict type checks `isinstance(val, (int, float))` alongside inequality checks when validating numeric configurations in security-sensitive or performance-critical loops.
