@@ -43,3 +43,7 @@
 **Vulnerability:** Numeric parameters like `tol`, `mu0`, and `initial_mu` were validated using simple inequalities (e.g., `tol <= 0`). If an attacker passes `NaN`, the inequality evaluates to `False`, bypassing the validation. This causes the loop termination conditions (e.g., `norm(g) < tol`) to always fail, forcing the algorithm to run for the maximum number of iterations.
 **Learning:** `NaN` values break standard inequality checks (`<`, `<=`, `>`, `>=` all return `False`). Attackers can exploit this to bypass positive/bounds checks, leading to forced maximum work (resource exhaustion DoS).
 **Prevention:** Always use `np.isnan()` or strict type checks `isinstance(val, (int, float))` alongside inequality checks when validating numeric configurations in security-sensitive or performance-critical loops.
+## 2024-05-24 - PRNG Security vs Performance Trade-off
+**Vulnerability:** Predictable PRNG sequence due to non-cryptographic generator.
+**Learning:** A proposed security fix to replace `np.random.default_rng(secrets.randbits(128))` with `secrets.SystemRandom()` was rejected because pure Python loops in vectorized mathematical operations cause severe performance regressions ('security theater').
+**Prevention:** Retain the securely seeded NumPy PRNG for performance, and document the trade-off explicitly with a security comment to prevent future confusion.

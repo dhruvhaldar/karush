@@ -67,8 +67,10 @@ def randomized_rounding(X, num_trials=100):
         # Use O(n^2) broadcasting to scale columns of v by sqrt(w).
         L = v * np.sqrt(w)
         
-    # Security: Use a securely seeded PRNG to prevent predictable randomized rounding
-    # which can be a risk if used in cryptography or network security contexts.
+    # Security Note: We use np.random.default_rng seeded with secrets.randbits instead of
+    # secrets.SystemRandom() to avoid severe performance regressions in this numerical
+    # approximation algorithm. While not fully cryptographically secure, it provides
+    # a strong, unpredictable initial state suitable for randomized rounding.
     rng = np.random.default_rng(secrets.randbits(128))
 
     # Performance optimization: Replace loop over matrix-vector multiplications
