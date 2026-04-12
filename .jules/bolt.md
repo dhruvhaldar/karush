@@ -42,3 +42,7 @@
 ## 2024-05-15 - Vectorize repeated function calls over a list of matrices
 **Learning:** Preprocessing logic like mapping a function (such as `svec` to vectorize matrices) over a list of numpy matrices using a Python loop or list comprehension introduces significant Python loop overhead. For $m$ constraint matrices, `[svec(Ai) for Ai in A_list]` requires repeatedly calling advanced indexing and NumPy operations in Python.
 **Action:** Instead of iterating through a list, convert the list of 2D matrices into a 3D NumPy array using `np.array(A_list)` (which is very fast) and apply advanced indexing simultaneously on the stacked array (`A_stack[:, idx_i, idx_j]`). This leverages C-level vectorization for preprocessing multiple constraints simultaneously, providing a roughly ~10x speedup for this specific data transformation step in SDP solvers.
+
+## 2024-05-19 - NumPy Scalar Broadcasting in Tight Loops
+**Learning:** In iterative loops, using `scalar * np.ones(n)` creates unnecessary array allocations (O(n) memory) and initialization overhead every iteration. In operations like `(vector + scalar * np.ones(n)) / vector2`, NumPy can directly broadcast the scalar, effectively evaluating as `(vector + scalar) / vector2`.
+**Action:** When updating vectorized right-hand sides or performing mathematical operations with scalars in optimization loops (like Primal-Dual methods), replace `np.ones(n)` multipliers with direct scalar broadcasting to eliminate memory allocation overhead.

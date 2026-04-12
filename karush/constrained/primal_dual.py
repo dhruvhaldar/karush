@@ -80,7 +80,9 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         KKT[diag_indices] = diag_G + z / x
         
         # Avoid `X_inv @ vector` which is O(n^2) by using element-wise division O(n)
-        rhs_1 = -r_L + ( -r_C + sigma * mu * np.ones(n) ) / x
+        # Performance optimization: Replace `sigma * mu * np.ones(n)` with scalar broadcasting `sigma * mu`.
+        # This eliminates unnecessary O(n) memory allocation and initialization per iteration.
+        rhs_1 = -r_L + ( -r_C + sigma * mu ) / x
         rhs_2 = -r_A
         
         # System:
@@ -97,7 +99,7 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
             
         dx = sol[:n]
         dy = sol[n:]
-        dz = ( -r_C + sigma * mu * np.ones(n) - z * dx ) / x
+        dz = ( -r_C + sigma * mu - z * dx ) / x
         
         # Line search to keep x, z > 0
         alpha_p = 1.0
