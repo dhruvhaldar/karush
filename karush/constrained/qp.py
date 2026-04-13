@@ -10,6 +10,12 @@ def solve_eq_qp(G, c, A, b):
     [ G  A^T ] [ x ] = [ -c ]
     [ A   0  ] [ lambda ]   [ b  ]
     """
+    G = np.asarray(G, dtype=float)
+    c = np.asarray(c, dtype=float)
+    if A is not None:
+        A = np.asarray(A, dtype=float)
+        b = np.asarray(b, dtype=float)
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(G)) or not np.all(np.isfinite(c)):
