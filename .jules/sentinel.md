@@ -47,3 +47,7 @@
 **Vulnerability:** Predictable PRNG sequence due to non-cryptographic generator.
 **Learning:** A proposed security fix to replace `np.random.default_rng(secrets.randbits(128))` with `secrets.SystemRandom()` was rejected because pure Python loops in vectorized mathematical operations cause severe performance regressions ('security theater').
 **Prevention:** Retain the securely seeded NumPy PRNG for performance, and document the trade-off explicitly with a security comment to prevent future confusion.
+## 2024-05-24 - Unhandled Exception (AttributeError) from List Inputs
+**Vulnerability:** Core functions like `solve_eq_qp` threw unhandled `AttributeError` exceptions when users passed standard Python lists (e.g., `A = [[1, 2]]`) instead of NumPy arrays, because the code directly accessed `A.size`.
+**Learning:** In scientific computing libraries, it's common for users to pass simple lists. Relying on NumPy-specific attributes (`.size`, `.shape`) without first ensuring the input is a valid NumPy array creates an easily triggerable denial of service vector (unhandled exception crash) in the solver.
+**Prevention:** Always explicitly convert array-like inputs to NumPy arrays using `np.asarray(..., dtype=float)` at the very beginning of the function before performing attribute checks or operations.

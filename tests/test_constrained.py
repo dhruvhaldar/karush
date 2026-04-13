@@ -24,6 +24,15 @@ class TestConstrained(unittest.TestCase):
         
         x, lam = solve_eq_qp(G, c, A, b)
         np.testing.assert_allclose(x, [1.0, 1.0], atol=1e-5)
+
+    def test_qp_list_input(self):
+        G = [[1.0, 0.0], [0.0, 1.0]]
+        c = [-1.0, -1.0]
+        A = [[1.0, 1.0]]
+        b = [2.0]
+
+        x, lam = solve_eq_qp(G, c, A, b)
+        np.testing.assert_allclose(x, [1.0, 1.0], atol=1e-5)
         
     def test_sqp(self):
         # min x^2 + y^2 s.t. x + y = 2
