@@ -98,6 +98,18 @@ class TestConstrained(unittest.TestCase):
         x_opt, _ = primal_dual_qp(G, c, A, b, x0, z0, tol=1e-4)
         np.testing.assert_allclose(x_opt, [0.5, 0.5], atol=1e-3)
 
+    def test_primal_dual_list_input(self):
+        from karush.constrained.primal_dual import primal_dual_qp
+        G = [[1.0, 0.0], [0.0, 1.0]]
+        c = [0.0, 0.0]
+        A = [[1.0, 1.0]]
+        b = [1.0]
+        x0 = [0.1, 0.9]
+        z0 = [1.0, 1.0]
+
+        x_opt, _ = primal_dual_qp(G, c, A, b, x0, z0, tol=1e-4)
+        np.testing.assert_allclose(x_opt, [0.5, 0.5], atol=1e-3)
+
     def test_primal_dual_validation(self):
         from karush.constrained.primal_dual import primal_dual_qp
         G = np.eye(2)

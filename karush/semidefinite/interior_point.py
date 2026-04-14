@@ -60,6 +60,12 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     
     This is a basic implementation for small-scale SDPs.
     """
+    # DoS Prevention: Convert to numpy arrays to prevent unhandled AttributeError on lists
+    C = np.asarray(C, dtype=float)
+    b = np.asarray(b, dtype=float)
+    A_list = [np.asarray(A, dtype=float) for A in A_list]
+    X0 = np.asarray(X0, dtype=float)
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(C)):
