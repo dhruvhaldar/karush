@@ -71,6 +71,26 @@ class TestConstrained(unittest.TestCase):
         x_opt, _ = barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, tol=1e-4)
         np.testing.assert_allclose(x_opt, [1.0], atol=1e-3)
 
+    def test_barrier_list_input(self):
+        def f(x): return x[0]**2
+        def grad_f(x): return [2*x[0]]
+        def hess_f(x): return [[2]]
+        def g_ineq(x): return [-x[0] + 1]
+        def grad_g_ineq(x): return [[-1.0]]
+        x0 = [2.0]
+        x_opt, _ = barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, tol=1e-4)
+        np.testing.assert_allclose(x_opt, [1.0], atol=1e-3)
+
+    def test_sqp_list_input(self):
+        def f(x): return x[0]**2 + x[1]**2
+        def grad_f(x): return [2*x[0], 2*x[1]]
+        def hess_f(x): return [[2, 0], [0, 2]]
+        def h(x): return [x[0] + x[1] - 2]
+        def grad_h(x): return [1, 1]
+        x0 = [0.0, 0.0]
+        x_opt, _ = sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-4)
+        np.testing.assert_allclose(x_opt, [1.0, 1.0], atol=1e-3)
+
     def test_barrier_validation(self):
         def f(x): return x[0]**2
         def grad_f(x): return np.array([2*x[0]])
