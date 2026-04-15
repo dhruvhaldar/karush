@@ -34,7 +34,9 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
         # Solve grad phi(x) = 0 using Newton
         
         for inner_iter in range(10): # Fixed inner iterations
-            g_val = g_ineq(x)
+            # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
+            # AttributeError/TypeError exceptions if user functions return standard Python lists.
+            g_val = np.asarray(g_ineq(x), dtype=float)
             
             # Check feasibility: if any constraint is violated, barrier is undefined.
             # In a robust implementation, we'd use line search to ensure feasibility.
@@ -43,13 +45,13 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 # For simplicity, break here if initial x0 was feasible but step went out
                 break
             
-            grad_g_val = grad_g_ineq(x)
+            grad_g_val = np.asarray(grad_g_ineq(x), dtype=float)
             
             # Gradient of barrier
             # grad ( - mu * sum log(-g_i) ) = sum ( -mu/(-g_i) * (-grad_g_i) ) = sum ( -mu/g_i * grad_g_i )
             # Performance optimization: Replaced np.sum with a direct matrix-vector dot product
             # (BLAS Level 2 optimization) for faster computation and lower memory overhead.
-            grad_phi = grad_f(x) + (-mu/g_val) @ grad_g_val
+            grad_phi = np.asarray(grad_f(x), dtype=float) + (-mu/g_val) @ grad_g_val
             
             if np.linalg.norm(grad_phi) < tol:
                 break
@@ -57,7 +59,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # Hessian of barrier
             # hess phi = hess f + sum( 1/g_i^2 * grad g_i * grad g_i^T ) + sum( -1/g_i * hess g_i )
             # Simplified: ignore hess g_i term (Gauss-Newton like approx)
-            hess_phi = hess_f(x).astype(float)
+            hess_phi = np.asarray(hess_f(x), dtype=float)
 
             # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
             # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
@@ -74,7 +76,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             alpha = 1.0
             while True:
                 x_new = x + alpha * p
-                if np.all(g_ineq(x_new) < 0):
+                g_new_val = np.asarray(g_ineq(x_new), dtype=float)
+                if np.all(g_new_val < 0):
                     # Ideally check Wolfe conditions on phi, but feasibility is key for barrier
                     x = x_new
                     break
