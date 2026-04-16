@@ -17,7 +17,9 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     if max_iter > 10000:
         raise ValueError("Maximum iterations max_iter exceeds safe limit.")
     history = [x.copy()]
-    g = grad_f(x)
+    # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
+    # AttributeError/TypeError exceptions if user functions return standard Python lists.
+    g = np.asarray(grad_f(x), dtype=float)
     g_norm_sq = np.dot(g, g)
     p = -g
     
@@ -41,7 +43,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
                 break # Avoid infinite loop
             
         x_new = x + alpha * p
-        g_new = grad_f(x_new)
+        g_new = np.asarray(grad_f(x_new), dtype=float)
         
         # Performance optimization: Cache expensive vector dot products.
         # Computing the norm squared once and reusing it avoids redundant O(n) operations

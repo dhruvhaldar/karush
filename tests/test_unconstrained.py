@@ -17,6 +17,8 @@ class TestUnconstrained(unittest.TestCase):
         self.hess_f = lambda x: np.array([[2, 0], [0, 2]])
         self.x0 = [0.0, 0.0]
         self.solution = np.array([1.0, 2.0])
+        self.grad_f_list = lambda x: [2 * (x[0] - 1), 2 * (x[1] - 2)]
+        self.hess_f_list = lambda x: [[2, 0], [0, 2]]
 
     def test_newton(self):
         x, _ = newton_method(self.f, self.grad_f, self.hess_f, self.x0)
@@ -40,6 +42,18 @@ class TestUnconstrained(unittest.TestCase):
     def test_max_iter_validation(self):
         with self.assertRaises(ValueError):
             bfgs_method(self.f, self.grad_f, self.x0, max_iter=10001)
+
+    def test_newton_list_input(self):
+        x, _ = newton_method(self.f, self.grad_f_list, self.hess_f_list, self.x0)
+        np.testing.assert_allclose(x, self.solution, atol=1e-5)
+
+    def test_bfgs_list_input(self):
+        x, _ = bfgs_method(self.f, self.grad_f_list, self.x0)
+        np.testing.assert_allclose(x, self.solution, atol=1e-5)
+
+    def test_conjugate_gradient_list_input(self):
+        x, _ = conjugate_gradient(self.f, self.grad_f_list, self.x0)
+        np.testing.assert_allclose(x, self.solution, atol=1e-5)
 
 if __name__ == '__main__':
     unittest.main()

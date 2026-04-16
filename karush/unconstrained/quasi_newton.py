@@ -21,7 +21,9 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     H = np.eye(n)  # Inverse Hessian approximation
     history = [x.copy()]
     
-    g = grad_f(x)
+    # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
+    # AttributeError/TypeError exceptions if user functions return standard Python lists.
+    g = np.asarray(grad_f(x), dtype=float)
     
     for k in range(max_iter):
         if np.linalg.norm(g) < tol:
@@ -45,7 +47,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
                 break
             
         x_new = x + alpha * p
-        g_new = grad_f(x_new)
+        g_new = np.asarray(grad_f(x_new), dtype=float)
         
         s = x_new - x
         y = g_new - g
