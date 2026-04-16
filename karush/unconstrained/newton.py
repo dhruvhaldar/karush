@@ -31,11 +31,13 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     history = [x.copy()]
     
     for k in range(max_iter):
-        g = grad_f(x)
+        # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
+        # AttributeError/TypeError exceptions if user functions return standard Python lists.
+        g = np.asarray(grad_f(x), dtype=float)
         if np.linalg.norm(g) < tol:
             break
             
-        H = hess_f(x)
+        H = np.asarray(hess_f(x), dtype=float)
         # Solve H * p = -g
         try:
             p = np.linalg.solve(H, -g)
