@@ -52,10 +52,10 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         c = 1e-4
 
         # Pre-compute values to avoid re-evaluating f(x) and the dot product in the loop
-        fx = f(x)
+        fx = np.asarray(f(x), dtype=float)
         expected_decrease = c * np.dot(g, p)
 
-        while f(x + alpha * p) > fx + alpha * expected_decrease:
+        while np.all(np.asarray(f(x + alpha * p), dtype=float) > fx + alpha * expected_decrease):
             alpha *= rho
             if alpha < 1e-10: # Safety break
                 break
