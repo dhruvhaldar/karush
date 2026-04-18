@@ -50,3 +50,7 @@
 ## 2026-11-20 - Optimizing Symmetric Matrix Reconstruction (smat)
 **Learning:** When reconstructing a symmetric matrix from its vectorized form using advanced indexing, allocating a dense matrix with `np.zeros`, assigning the upper triangle, dividing off-diagonal elements in the 2D representation, and finally mirroring them is suboptimal.
 **Action:** Use `np.empty` instead of `np.zeros` to save allocation overhead. Scale the 1D vector first (`v_scaled = v.copy()`; `v_scaled[off_diag] /= np.sqrt(2)`), and then use bidirectional assignment (`M[idx_i, idx_j] = v_scaled` and `M[idx_j, idx_i] = v_scaled`) to construct the symmetric matrix directly. This reduces memory passes and yields a >2x speedup.
+
+## 2026-04-18 - Optimize 2D Broadcasting Advanced Indexing
+**Learning:** In NumPy, using 2D broadcasting advanced indexing (e.g., `X_inv[idx_a[:, None], idx_a[None, :]]`) to extract submatrices is memory intensive and slow compared to doing it sequentially in 1D.
+**Action:** Replace 2D broadcasting with sequential 1D extractions (e.g., first extracting rows `X_inv_a = X_inv[idx_a]`, then columns `X_inv_a[:, idx_a]`) to reduce memory footprint and improve performance significantly.
