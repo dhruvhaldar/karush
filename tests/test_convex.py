@@ -19,5 +19,16 @@ class TestConvex(unittest.TestCase):
         with self.assertRaises(ValueError):
             randomized_rounding(X, num_trials=100001)
 
+    def test_boolean_validation(self):
+        from karush.convex.relaxations import max_cut_sdp_relaxation
+        W = np.eye(2)
+        with self.assertRaises(ValueError):
+            max_cut_sdp_relaxation(W, tol=True)
+        with self.assertRaises(ValueError):
+            max_cut_sdp_relaxation(W, max_iter=False)
+
+        with self.assertRaises(ValueError):
+            randomized_rounding(W, num_trials=True)
+
 if __name__ == '__main__':
     unittest.main()

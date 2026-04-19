@@ -183,5 +183,55 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             solve_sdp_barrier(C, A_list, b, X0, initial_mu=-1.0)
 
+    def test_boolean_validation(self):
+        def f(x): return x[0]**2
+        def grad_f(x): return np.array([2*x[0]])
+        def hess_f(x): return np.array([[2]])
+        def g_ineq(x): return np.array([-x[0] + 1])
+        def grad_g_ineq(x): return np.array([[-1.0]])
+        x0 = [2.0]
+
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, tol=True)
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, max_iter=False)
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=True)
+
+        def f_sqp(x): return x[0]**2 + x[1]**2
+        def grad_f_sqp(x): return np.array([2*x[0], 2*x[1]])
+        def hess_f_sqp(x): return np.array([[2, 0], [0, 2]])
+        def h_sqp(x): return np.array([x[0] + x[1] - 2])
+        def grad_h_sqp(x): return np.array([1, 1])
+        x0_sqp = [0.0, 0.0]
+        with self.assertRaises(ValueError):
+            sqp_equality_constrained(f_sqp, grad_f_sqp, hess_f_sqp, h_sqp, grad_h_sqp, x0_sqp, tol=False)
+        with self.assertRaises(ValueError):
+            sqp_equality_constrained(f_sqp, grad_f_sqp, hess_f_sqp, h_sqp, grad_h_sqp, x0_sqp, max_iter=True)
+
+        from karush.constrained.primal_dual import primal_dual_qp
+        G = np.eye(2)
+        c = np.zeros(2)
+        A = np.array([[1.0, 1.0]])
+        b = np.array([1.0])
+        x0_pd = [0.1, 0.9]
+        z0_pd = [1.0, 1.0]
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c, A, b, x0_pd, z0_pd, tol=True)
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c, A, b, x0_pd, z0_pd, max_iter=False)
+
+        from karush.semidefinite.interior_point import solve_sdp_barrier
+        C = np.eye(2)
+        A_list = [np.eye(2)]
+        b_sdp = np.array([1.0])
+        X0 = np.eye(2)
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b_sdp, X0, tol=False)
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b_sdp, X0, max_iter=True)
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b_sdp, X0, initial_mu=True)
+
 if __name__ == '__main__':
     unittest.main()
