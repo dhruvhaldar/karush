@@ -55,5 +55,21 @@ class TestUnconstrained(unittest.TestCase):
         x, _ = conjugate_gradient(self.f, self.grad_f_list, self.x0)
         np.testing.assert_allclose(x, self.solution, atol=1e-5)
 
+    def test_boolean_validation(self):
+        with self.assertRaises(ValueError):
+            newton_method(self.f, self.grad_f, self.hess_f, self.x0, tol=True)
+        with self.assertRaises(ValueError):
+            newton_method(self.f, self.grad_f, self.hess_f, self.x0, max_iter=False)
+
+        with self.assertRaises(ValueError):
+            bfgs_method(self.f, self.grad_f, self.x0, tol=False)
+        with self.assertRaises(ValueError):
+            bfgs_method(self.f, self.grad_f, self.x0, max_iter=True)
+
+        with self.assertRaises(ValueError):
+            conjugate_gradient(self.f, self.grad_f, self.x0, tol=True)
+        with self.assertRaises(ValueError):
+            conjugate_gradient(self.f, self.grad_f, self.x0, max_iter=False)
+
 if __name__ == '__main__':
     unittest.main()

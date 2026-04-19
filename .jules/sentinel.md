@@ -59,3 +59,8 @@
 **Vulnerability:** Optimizers like SQP and Barrier crashed (`AttributeError` or `TypeError`) when user-provided objective or constraint functions returned standard Python lists instead of NumPy arrays.
 **Learning:** Functions that interact mathematically with numpy arrays must sanitize their inputs and external function return values by explicitly converting them using `np.asarray(..., dtype=float)`. The vulnerability arose because mathematical operators on mixed lists and arrays can fail unexpectedly (e.g., list `>` int comparison).
 **Prevention:** In local mathematical libraries, always cast array-like inputs and function return values to NumPy arrays via `np.asarray` before performing matrix operations, attribute checks (like `.ndim`), or inequalities.
+
+## 2024-04-19 - Python Bool vs Int Inheritance Validation Bypass
+**Vulnerability:** Numeric parameter validation bypass (DoS/Logic Error). In Python, `bool` is a subclass of `int`. Validation checks like `isinstance(val, (int, float))` and conditions like `val <= 0` can be bypassed if users supply boolean values (e.g., `True` evaluates to 1, `False` evaluates to 0). This allows users to bypass safety limits (like `max_iter` bounds) or pass invalid tolerance settings, leading to infinite loops or incorrect termination in optimization algorithms.
+**Learning:** Checking for `int` and `float` types is not sufficient to exclude booleans in Python due to inheritance.
+**Prevention:** Always explicitly reject boolean types when validating numeric configuration parameters in Python by adding `not isinstance(val, bool)` or `isinstance(val, bool)` depending on the assertion logic.

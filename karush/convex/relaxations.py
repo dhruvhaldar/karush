@@ -18,9 +18,9 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(W)):
         raise ValueError("Input array W must contain only finite numbers.")
-    if not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
+    if not isinstance(tol, (int, float, np.number)) or isinstance(tol, bool) or np.isnan(tol) or tol <= 0:
         raise ValueError("Tolerance tol must be strictly positive.")
-    if not isinstance(max_iter, int) or max_iter <= 0:
+    if not isinstance(max_iter, int) or isinstance(max_iter, bool) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
     if max_iter > 10000:
         raise ValueError("Maximum iterations max_iter exceeds safe limit.")
@@ -54,7 +54,7 @@ def randomized_rounding(X, num_trials=100):
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(X)):
         raise ValueError("Input array X must contain only finite numbers.")
-    if not isinstance(num_trials, int) or num_trials <= 0:
+    if not isinstance(num_trials, int) or isinstance(num_trials, bool) or num_trials <= 0:
         raise ValueError("num_trials must be a positive integer.")
     # Security Enhancement: Bound num_trials to prevent memory exhaustion (OOM DoS vulnerabilities)
     # when allocating arrays of size O(n^2 * num_trials).
