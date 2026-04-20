@@ -20,9 +20,9 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(x0)):
         raise ValueError("Initial guess x0 must contain only finite numbers.")
-    if not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
+    if isinstance(tol, bool) or not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
         raise ValueError("Tolerance tol must be strictly positive.")
-    if not isinstance(max_iter, int) or max_iter <= 0:
+    if isinstance(max_iter, bool) or not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
     if max_iter > 10000:
         raise ValueError("Maximum iterations max_iter exceeds safe limit.")

@@ -26,9 +26,9 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         raise ValueError("Constraint arrays A and b must contain only finite numbers.")
     if not np.all(np.isfinite(x0)) or not np.all(np.isfinite(z0)):
         raise ValueError("Initial points x0 and z0 must contain only finite numbers.")
-    if not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
+    if isinstance(tol, bool) or not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
         raise ValueError("Tolerance tol must be strictly positive.")
-    if not isinstance(max_iter, int) or max_iter <= 0:
+    if isinstance(max_iter, bool) or not isinstance(max_iter, int) or max_iter <= 0:
         raise ValueError("Maximum iterations max_iter must be a positive integer.")
     if max_iter > 10000:
         raise ValueError("Maximum iterations max_iter exceeds safe limit.")
