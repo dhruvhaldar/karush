@@ -55,5 +55,24 @@ class TestUnconstrained(unittest.TestCase):
         x, _ = conjugate_gradient(self.f, self.grad_f_list, self.x0)
         np.testing.assert_allclose(x, self.solution, atol=1e-5)
 
+    def test_multiple_element_list_input(self):
+        def f_multi(x):
+            return [(x[0] - 1)**2, (x[1] - 2)**2]
+
+        def grad_f_multi(x):
+            return [2 * (x[0] - 1), 2 * (x[1] - 2)]
+
+        def hess_f_multi(x):
+            return [[2, 0], [0, 2]]
+
+        x_newton, _ = newton_method(f_multi, grad_f_multi, hess_f_multi, self.x0)
+        np.testing.assert_allclose(x_newton, self.solution, atol=1e-5)
+
+        x_bfgs, _ = bfgs_method(f_multi, grad_f_multi, self.x0)
+        np.testing.assert_allclose(x_bfgs, self.solution, atol=1e-5)
+
+        x_cg, _ = conjugate_gradient(f_multi, grad_f_multi, self.x0)
+        np.testing.assert_allclose(x_cg, self.solution, atol=1e-5)
+
 if __name__ == '__main__':
     unittest.main()
