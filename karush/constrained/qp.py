@@ -23,6 +23,11 @@ def solve_eq_qp(G, c, A, b):
     if A is not None and A.size > 0 and (not np.all(np.isfinite(A)) or not np.all(np.isfinite(b))):
         raise ValueError("Constraint arrays A and b must contain only finite numbers.")
 
+    if G.ndim != 2:
+        raise ValueError("Input array G must be a 2D matrix.")
+    if A is not None and A.size > 0 and A.ndim != 2:
+        raise ValueError("Constraint array A must be a 2D matrix.")
+
     n = G.shape[0]
     # Handle cases where A is empty or None
     if A is None or A.size == 0:
