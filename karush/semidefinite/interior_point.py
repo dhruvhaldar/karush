@@ -19,8 +19,10 @@ def svec(M):
     # Performance optimization: Replace nested Python loops with NumPy advanced indexing.
     # Extracting upper triangle elements and vectorizing off-diagonal scaling
     # provides ~80x speedup for 200x200 matrices.
+    # Note: Advanced indexing `M[idx_i, idx_j]` already returns a copy.
+    # Calling `.copy()` on top of it creates a redundant O(n^2) memory allocation.
     idx_i, idx_j, off_diag = _get_svec_indices(n)
-    v = M[idx_i, idx_j].copy()
+    v = M[idx_i, idx_j]
 
     # Multiply off-diagonal elements by sqrt(2)
     v[off_diag] *= np.sqrt(2)
@@ -154,7 +156,9 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             H_mat = (mu * 0.5) * W_mat * M
             
             # KKT System
-            residuals = A_mat @ svec(X) - np.array(b)
+            # Performance optimization: `b` is already a NumPy array. Avoid `np.array(b)`
+            # inside the loop which creates an unnecessary copy every iteration.
+            residuals = A_mat @ svec(X) - b
             
             KKT_lhs[:dim_vec, :dim_vec] = H_mat
             rhs[:dim_vec] = -grad_vec
