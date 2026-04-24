@@ -68,6 +68,18 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     A_list = [np.asarray(A, dtype=float) for A in A_list]
     X0 = np.asarray(X0, dtype=float)
 
+    # Security Enhancement: Add input sanitization to validate array dimensions before passing
+    # to np.linalg.solve or other matrix operations. Validating only for finite values is insufficient
+    # and can lead to unhandled exception DoS crashes if users provide incorrectly dimensioned arrays.
+    if C.ndim != 2:
+        raise ValueError("Input array C must be a 2D matrix.")
+    if b.ndim != 1:
+        raise ValueError("Constraint array b must be a 1D array.")
+    if not np.all([A.ndim == 2 for A in A_list]):
+        raise ValueError("Constraint matrices A_list must be 2D matrices.")
+    if X0.ndim != 2:
+        raise ValueError("Initial point X0 must be a 2D matrix.")
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(C)):
