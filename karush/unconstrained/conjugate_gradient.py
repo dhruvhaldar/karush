@@ -23,6 +23,10 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     g_norm_sq = np.dot(g, g)
     p = -g
     
+    # Performance optimization: Evaluate objective function once outside the loop
+    # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
+    fx = np.asarray(f(x), dtype=float)
+
     for k in range(max_iter):
         if np.sqrt(g_norm_sq) < tol:
             break
@@ -32,17 +36,19 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         rho = 0.5
         c = 1e-4
         
-        # Backtracking line search ensuring sufficient decrease
-        # Pre-compute values to avoid re-evaluating f(x) and the dot product in the loop
-        fx = np.asarray(f(x), dtype=float)
         expected_decrease = c * np.dot(g, p)
 
-        while np.all(np.asarray(f(x + alpha * p), dtype=float) > fx + alpha * expected_decrease):
+        while True:
+            f_new = np.asarray(f(x + alpha * p), dtype=float)
+            if np.all(f_new <= fx + alpha * expected_decrease):
+                break
             alpha *= rho
             if alpha < 1e-10:
+                f_new = np.asarray(f(x + alpha * p), dtype=float)
                 break # Avoid infinite loop
             
         x_new = x + alpha * p
+        fx = f_new
         g_new = np.asarray(grad_f(x_new), dtype=float)
         
         # Performance optimization: Cache expensive vector dot products.

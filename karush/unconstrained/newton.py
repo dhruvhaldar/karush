@@ -30,6 +30,10 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     x = np.array(x0, dtype=float)
     history = [x.copy()]
     
+    # Performance optimization: Evaluate objective function once outside the loop
+    # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
+    fx = np.asarray(f(x), dtype=float)
+
     for k in range(max_iter):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
@@ -51,16 +55,19 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         rho = 0.5
         c = 1e-4
 
-        # Pre-compute values to avoid re-evaluating f(x) and the dot product in the loop
-        fx = np.asarray(f(x), dtype=float)
         expected_decrease = c * np.dot(g, p)
 
-        while np.all(np.asarray(f(x + alpha * p), dtype=float) > fx + alpha * expected_decrease):
+        while True:
+            f_new = np.asarray(f(x + alpha * p), dtype=float)
+            if np.all(f_new <= fx + alpha * expected_decrease):
+                break
             alpha *= rho
             if alpha < 1e-10: # Safety break
+                f_new = np.asarray(f(x + alpha * p), dtype=float)
                 break
             
         x += alpha * p
+        fx = f_new  # Cache the accepted function value for the next iteration
         history.append(x.copy())
         
     return x, np.array(history)
