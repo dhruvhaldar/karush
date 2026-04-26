@@ -27,6 +27,10 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     mu = mu0
     history = [x.copy()]
     
+    # Performance optimization: Evaluate constraint function once outside the loop
+    # and cache the accepted line search value to avoid redundant g_ineq(x) calls per iteration.
+    g_val = np.asarray(g_ineq(x), dtype=float)
+
     for k in range(max_iter):
         
         # Inner loop: Minimize barrier function
@@ -34,9 +38,6 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
         # Solve grad phi(x) = 0 using Newton
         
         for inner_iter in range(10): # Fixed inner iterations
-            # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
-            # AttributeError/TypeError exceptions if user functions return standard Python lists.
-            g_val = np.asarray(g_ineq(x), dtype=float)
             
             # Check feasibility: if any constraint is violated, barrier is undefined.
             # In a robust implementation, we'd use line search to ensure feasibility.
@@ -80,6 +81,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 if np.all(g_new_val < 0):
                     # Ideally check Wolfe conditions on phi, but feasibility is key for barrier
                     x = x_new
+                    g_val = g_new_val  # Cache the accepted constraint value for the next iteration
                     break
                 alpha *= 0.5
                 if alpha < 1e-8:
