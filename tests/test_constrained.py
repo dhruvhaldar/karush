@@ -120,6 +120,21 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             solve_eq_qp(G_2d, c, A_1d, b)
 
+    def test_qp_dimension_validation_c_b(self):
+        from karush.constrained.qp import solve_eq_qp
+        G = np.eye(2)
+        c_2d = np.array([[1.0, 1.0]])
+        A = np.array([[1.0, 1.0]])
+        b = np.array([1.0])
+
+        with self.assertRaises(ValueError):
+            solve_eq_qp(G, c_2d, A, b)
+
+        c_1d = np.array([1.0, 1.0])
+        b_2d = np.array([[1.0]])
+        with self.assertRaises(ValueError):
+            solve_eq_qp(G, c_1d, A, b_2d)
+
     def test_primal_dual(self):
         from karush.constrained.primal_dual import primal_dual_qp
         # min 0.5 (x1^2 + x2^2) s.t. x1+x2=1, x>=0

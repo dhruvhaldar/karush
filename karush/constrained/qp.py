@@ -25,8 +25,12 @@ def solve_eq_qp(G, c, A, b):
 
     if G.ndim != 2:
         raise ValueError("Input array G must be a 2D matrix.")
+    if c.ndim != 1:
+        raise ValueError("Input array c must be a 1D vector.")
     if A is not None and A.size > 0 and A.ndim != 2:
         raise ValueError("Constraint array A must be a 2D matrix.")
+    if A is not None and A.size > 0 and b.ndim != 1:
+        raise ValueError("Constraint array b must be a 1D vector.")
 
     n = G.shape[0]
     # Handle cases where A is empty or None
