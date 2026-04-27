@@ -38,10 +38,17 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
         g = np.asarray(grad_f(x), dtype=float)
+        # Security Enhancement: Add input sanitization to validate array dimensions before passing
+        # to np.linalg.solve or other matrix operations. Validating only for finite values is insufficient
+        # and can lead to unhandled exception DoS crashes if user functions return incorrectly dimensioned arrays.
+        if g.ndim != 1:
+            raise ValueError("Gradient must be a 1D vector.")
         if np.linalg.norm(g) < tol:
             break
             
         H = np.asarray(hess_f(x), dtype=float)
+        if H.ndim != 2:
+            raise ValueError("Hessian must be a 2D matrix.")
         # Solve H * p = -g
         try:
             p = np.linalg.solve(H, -g)
