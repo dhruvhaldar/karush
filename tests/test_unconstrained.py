@@ -74,5 +74,21 @@ class TestUnconstrained(unittest.TestCase):
         x_cg, _ = conjugate_gradient(f_multi, grad_f_multi, self.x0)
         np.testing.assert_allclose(x_cg, self.solution, atol=1e-5)
 
+    def test_newton_dimension_validation(self):
+        # Test gradient dimension validation
+        def f(x): return np.sum(x**2)
+        def grad_f_bad(x): return np.array([[2.0*x[0], 2.0*x[1]]]) # 2D gradient
+        def hess_f(x): return np.array([[2, 0], [0, 2]])
+
+        with self.assertRaises(ValueError):
+            newton_method(f, grad_f_bad, hess_f, [1.0, 2.0])
+
+        # Test Hessian dimension validation
+        def grad_f(x): return np.array([2.0*x[0], 2.0*x[1]])
+        def hess_f_bad(x): return np.array([2.0, 2.0]) # 1D hessian
+
+        with self.assertRaises(ValueError):
+            newton_method(f, grad_f, hess_f_bad, [1.0, 2.0])
+
 if __name__ == '__main__':
     unittest.main()
