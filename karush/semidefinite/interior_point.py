@@ -127,8 +127,6 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     W_svec = np.full(len(idx_a), np.sqrt(2))
     W_svec[idx_a == idx_b] = 1.0
 
-    W_mat = W_svec[:, None] * W_svec[None, :]
-
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
     KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
@@ -162,10 +160,16 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             Vad = X_inv_a[:, idx_b]
             Vbc = X_inv_b[:, idx_a]
             
-            M = Vac * Vbd + Vad * Vbc
+            # Performance optimization: Avoid allocating a dense O(n^4) memory footprint explicitly
+            # with W_mat. Instead, modify M in-place and use 1D broadcasting for scaling.
+            M = Vac * Vbd
+            M += Vad * Vbc
             # Adjust scaling by 0.5 because D has symmetric off-diagonal elements divided by sqrt(2)
             # The exact derivation yields W_svec factors and a 0.5 coefficient.
-            H_mat = (mu * 0.5) * W_mat * M
+            M *= (mu * 0.5)
+            M *= W_svec[:, None]
+            M *= W_svec[None, :]
+            H_mat = M
             
             # KKT System
             # Performance optimization: `b` is already a NumPy array. Avoid `np.array(b)`
