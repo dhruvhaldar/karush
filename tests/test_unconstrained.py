@@ -90,5 +90,19 @@ class TestUnconstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             newton_method(f, grad_f, hess_f_bad, [1.0, 2.0])
 
+    def test_bfgs_dimension_validation(self):
+        def f(x): return np.sum(x**2)
+        def grad_f_bad(x): return np.array([[2.0*x[0], 2.0*x[1]]]) # 2D gradient
+
+        with self.assertRaises(ValueError):
+            bfgs_method(f, grad_f_bad, [1.0, 2.0])
+
+    def test_cg_dimension_validation(self):
+        def f(x): return np.sum(x**2)
+        def grad_f_bad(x): return np.array([[2.0*x[0], 2.0*x[1]]]) # 2D gradient
+
+        with self.assertRaises(ValueError):
+            conjugate_gradient(f, grad_f_bad, [1.0, 2.0])
+
 if __name__ == '__main__':
     unittest.main()

@@ -24,6 +24,11 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
     # AttributeError/TypeError exceptions if user functions return standard Python lists.
     g = np.asarray(grad_f(x), dtype=float)
+    # Security Enhancement: Add input sanitization to validate array dimensions before passing
+    # to np.linalg.solve or other matrix operations. Validating only for finite values is insufficient
+    # and can lead to unhandled exception DoS crashes if user functions return incorrectly dimensioned arrays.
+    if g.ndim != 1:
+        raise ValueError("Gradient must be a 1D vector.")
     
     # Performance optimization: Evaluate objective function once outside the loop
     # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
@@ -54,6 +59,8 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         x_new = x + alpha * p
         fx = f_new
         g_new = np.asarray(grad_f(x_new), dtype=float)
+        if g_new.ndim != 1:
+            raise ValueError("Gradient must be a 1D vector.")
         
         s = x_new - x
         y = g_new - g
