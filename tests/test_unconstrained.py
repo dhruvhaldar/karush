@@ -74,6 +74,32 @@ class TestUnconstrained(unittest.TestCase):
         x_cg, _ = conjugate_gradient(f_multi, grad_f_multi, self.x0)
         np.testing.assert_allclose(x_cg, self.solution, atol=1e-5)
 
+    def test_bfgs_dimension_validation_dos(self):
+        def f(x): return np.sum(x**2)
+        def grad_f_bad(x): return np.array([[2.0*x[0], 2.0*x[1]]]) # 2D gradient
+
+        with self.assertRaises(ValueError):
+            bfgs_method(f, grad_f_bad, [1.0, 2.0])
+
+        def grad_f_good(x): return np.array([2.0*x[0], 2.0*x[1]])
+        def f_bad(x): return np.array([np.sum(x**2), np.sum(x**2)]) # Used in line search truth testing
+
+        # We don't have a direct dimension test for f_new.ndim != 1 yet but we added it to g_new
+        # Let's test the g_new logic within the line search loop.
+        # This requires taking a step, so we need a valid initial g and a bad g_new.
+        class BadGradObj:
+            def __init__(self):
+                self.calls = 0
+            def grad(self, x):
+                if self.calls == 0:
+                    self.calls += 1
+                    return np.array([2.0*x[0], 2.0*x[1]])
+                return np.array([[2.0*x[0], 2.0*x[1]]]) # Bad 2nd call
+
+        bad_grad = BadGradObj()
+        with self.assertRaises(ValueError):
+            bfgs_method(f, bad_grad.grad, [1.0, 2.0])
+
     def test_newton_dimension_validation(self):
         # Test gradient dimension validation
         def f(x): return np.sum(x**2)

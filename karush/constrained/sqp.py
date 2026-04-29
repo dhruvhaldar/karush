@@ -29,10 +29,14 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
         g = np.asarray(grad_f(x), dtype=float)
+        if g.ndim != 1:
+            raise ValueError("Gradient must be a 1D vector.")
         # Approximate Hessian of Lagrangian. For simplicity, use hess_f(x).
         # A full implementation would use the Hessian of the Lagrangian:
         # W = hess_f(x) + sum(lam_i * hess_h_i(x))
         W = np.asarray(hess_f(x), dtype=float)
+        if W.ndim != 2:
+            raise ValueError("Hessian must be a 2D matrix.")
         
         c_val = np.asarray(h(x), dtype=float)
         A = np.asarray(grad_h(x), dtype=float)

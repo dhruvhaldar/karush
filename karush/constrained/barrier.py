@@ -30,6 +30,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     # Performance optimization: Evaluate constraint function once outside the loop
     # and cache the accepted line search value to avoid redundant g_ineq(x) calls per iteration.
     g_val = np.asarray(g_ineq(x), dtype=float)
+    if g_val.ndim != 1:
+        raise ValueError("Constraint function must return a 1D vector.")
 
     for k in range(max_iter):
         
@@ -47,12 +49,17 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 break
             
             grad_g_val = np.asarray(grad_g_ineq(x), dtype=float)
+            if grad_g_val.ndim != 2:
+                raise ValueError("Constraint gradient must be a 2D matrix.")
             
             # Gradient of barrier
             # grad ( - mu * sum log(-g_i) ) = sum ( -mu/(-g_i) * (-grad_g_i) ) = sum ( -mu/g_i * grad_g_i )
             # Performance optimization: Replaced np.sum with a direct matrix-vector dot product
             # (BLAS Level 2 optimization) for faster computation and lower memory overhead.
-            grad_phi = np.asarray(grad_f(x), dtype=float) + (-mu/g_val) @ grad_g_val
+            grad_f_val = np.asarray(grad_f(x), dtype=float)
+            if grad_f_val.ndim != 1:
+                raise ValueError("Gradient must be a 1D vector.")
+            grad_phi = grad_f_val + (-mu/g_val) @ grad_g_val
             
             if np.linalg.norm(grad_phi) < tol:
                 break
@@ -61,6 +68,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # hess phi = hess f + sum( 1/g_i^2 * grad g_i * grad g_i^T ) + sum( -1/g_i * hess g_i )
             # Simplified: ignore hess g_i term (Gauss-Newton like approx)
             hess_phi = np.asarray(hess_f(x), dtype=float)
+            if hess_phi.ndim != 2:
+                raise ValueError("Hessian must be a 2D matrix.")
 
             # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
             # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
@@ -78,6 +87,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             while True:
                 x_new = x + alpha * p
                 g_new_val = np.asarray(g_ineq(x_new), dtype=float)
+                if g_new_val.ndim != 1:
+                    raise ValueError("Constraint function must return a 1D vector.")
                 if np.all(g_new_val < 0):
                     # Ideally check Wolfe conditions on phi, but feasibility is key for barrier
                     x = x_new
