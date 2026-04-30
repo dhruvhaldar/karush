@@ -105,6 +105,52 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=-1.0)
 
+    def test_barrier_dimension_validation_dos(self):
+        def f(x): return x[0]**2
+        def grad_f(x): return np.array([2*x[0]])
+        def hess_f(x): return np.array([[2]])
+        def g_ineq(x): return np.array([-x[0] + 1])
+        def grad_g_ineq(x): return np.array([[-1.0]])
+        x0 = [2.0]
+
+        # Test gradient dimension validation
+        def grad_f_bad(x): return np.array([[2*x[0]]])
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f_bad, hess_f, g_ineq, grad_g_ineq, x0)
+
+        # Test hessian dimension validation
+        def hess_f_bad(x): return np.array([2])
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f_bad, g_ineq, grad_g_ineq, x0)
+
+        # Test constraint function dimension validation
+        def g_ineq_bad(x): return np.array([[-x[0] + 1]])
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq_bad, grad_g_ineq, x0)
+
+        # Test constraint gradient dimension validation
+        def grad_g_ineq_bad(x): return np.array([-1.0])
+        with self.assertRaises(ValueError):
+            barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq_bad, x0)
+
+    def test_sqp_dimension_validation_dos(self):
+        def f(x): return x[0]**2 + x[1]**2
+        def grad_f(x): return np.array([2*x[0], 2*x[1]])
+        def hess_f(x): return np.array([[2, 0], [0, 2]])
+        def h(x): return np.array([x[0] + x[1] - 2])
+        def grad_h(x): return np.array([1, 1])
+        x0 = [0.0, 0.0]
+
+        # Test gradient dimension validation
+        def grad_f_bad(x): return np.array([[2*x[0], 2*x[1]]])
+        with self.assertRaises(ValueError):
+            sqp_equality_constrained(f, grad_f_bad, hess_f, h, grad_h, x0)
+
+        # Test hessian dimension validation
+        def hess_f_bad(x): return np.array([2, 0])
+        with self.assertRaises(ValueError):
+            sqp_equality_constrained(f, grad_f, hess_f_bad, h, grad_h, x0)
+
     def test_qp_dimension_validation(self):
         from karush.constrained.qp import solve_eq_qp
         G_1d = np.array([1.0, 1.0])
