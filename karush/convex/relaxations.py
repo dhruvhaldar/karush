@@ -13,6 +13,8 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     """
     # DoS Prevention: Convert to numpy array to prevent unhandled AttributeError on lists
     W = np.asarray(W, dtype=float)
+    if W.ndim != 2:
+        raise ValueError("Input array W must be a 2D matrix.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
@@ -49,6 +51,8 @@ def randomized_rounding(X, num_trials=100):
     """
     # DoS Prevention: Convert to numpy array to prevent unhandled AttributeError on lists
     X = np.asarray(X, dtype=float)
+    if X.ndim != 2:
+        raise ValueError("Input array X must be a 2D matrix.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
