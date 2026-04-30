@@ -11,6 +11,8 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     intended for demonstration purposes.
     """
     x = np.array(x0, dtype=float)
+    if x.ndim != 1:
+        raise ValueError("Initial guess x0 must be a 1D vector.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.

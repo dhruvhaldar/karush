@@ -6,6 +6,10 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     x = np.array(x0, dtype=float)
 
+    # Security Enhancement: Validate input dimensions to prevent unhandled TypeError/ValueError DoS.
+    if x.ndim != 1:
+        raise ValueError("Initial guess x0 must be a 1D vector.")
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(x)):
@@ -20,6 +24,10 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
     # AttributeError/TypeError exceptions if user functions return standard Python lists.
     g = np.asarray(grad_f(x), dtype=float)
+    # Security Enhancement: Validate dimensions of arrays returned by user-provided functions
+    # before matrix operations or line searches to prevent unhandled ValueError DoS crashes.
+    if g.ndim != 1:
+        raise ValueError("Gradient must be a 1D vector.")
     g_norm_sq = np.dot(g, g)
     p = -g
     
@@ -50,6 +58,8 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         x_new = x + alpha * p
         fx = f_new
         g_new = np.asarray(grad_f(x_new), dtype=float)
+        if g_new.ndim != 1:
+            raise ValueError("Gradient must be a 1D vector.")
         
         # Performance optimization: Cache expensive vector dot products.
         # Computing the norm squared once and reusing it avoids redundant O(n) operations
@@ -61,6 +71,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         p_new = -g_new + beta * p
         
         # FIX: Reset to steepest descent if not a descent direction
+        # Security Enhancement: Prevent division-by-zero or unhandled math exceptions if dot product is evaluated on incorrectly shaped arrays.
         if np.dot(p_new, g_new) >= 0:
             p_new = -g_new
             

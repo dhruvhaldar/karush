@@ -5,6 +5,8 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     BFGS Quasi-Newton method.
     """
     x = np.array(x0, dtype=float)
+    if x.ndim != 1:
+        raise ValueError("Initial guess x0 must be a 1D vector.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
