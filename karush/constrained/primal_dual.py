@@ -37,6 +37,16 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     if c.ndim != 1 or b.ndim != 1 or x0.ndim != 1 or z0.ndim != 1:
         raise ValueError("Inputs c, b, x0, and z0 must be 1D arrays.")
 
+    n = G.shape[0]
+    if G.shape[1] != n:
+        raise ValueError("Input matrix G must be square.")
+    if c.shape[0] != n or x0.shape[0] != n or z0.shape[0] != n:
+        raise ValueError("Inputs c, x0, and z0 must have the same dimension as G.")
+    if A.shape[1] != n:
+        raise ValueError("Constraint matrix A must have the same number of columns as G.")
+    if b.shape[0] != A.shape[0]:
+        raise ValueError("Constraint vector b must have the same number of rows as A.")
+
     if isinstance(tol, bool) or not isinstance(tol, (int, float, np.number)) or np.isnan(tol) or tol <= 0:
         raise ValueError("Tolerance tol must be strictly positive.")
     if isinstance(max_iter, bool) or not isinstance(max_iter, int) or max_iter <= 0:
