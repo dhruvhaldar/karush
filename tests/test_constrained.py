@@ -259,5 +259,64 @@ class TestConstrained(unittest.TestCase):
         with self.assertRaises(ValueError):
             solve_sdp_barrier(C, A_list, b, X0, initial_mu=-1.0)
 
+    def test_qp_shape_mismatch(self):
+        from karush.constrained.qp import solve_eq_qp
+        G = np.eye(3)
+        c = np.ones(2)
+        A = np.ones((2, 3))
+        b = np.ones(2)
+        with self.assertRaises(ValueError):
+            solve_eq_qp(G, c, A, b)
+
+        c2 = np.ones(3)
+        A2 = np.ones((2, 2))
+        with self.assertRaises(ValueError):
+            solve_eq_qp(G, c2, A2, b)
+
+        A3 = np.ones((2, 3))
+        b3 = np.ones(3)
+        with self.assertRaises(ValueError):
+            solve_eq_qp(G, c2, A3, b3)
+
+    def test_primal_dual_shape_mismatch(self):
+        from karush.constrained.primal_dual import primal_dual_qp
+        G = np.eye(3)
+        c = np.ones(2)
+        A = np.ones((2, 3))
+        b = np.ones(2)
+        x0 = np.ones(3)
+        z0 = np.ones(3)
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c, A, b, x0, z0)
+
+        c2 = np.ones(3)
+        A2 = np.ones((2, 2))
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c2, A2, b, x0, z0)
+
+        A3 = np.ones((2, 3))
+        b3 = np.ones(3)
+        with self.assertRaises(ValueError):
+            primal_dual_qp(G, c2, A3, b3, x0, z0)
+
+    def test_sdp_barrier_shape_mismatch(self):
+        from karush.semidefinite.interior_point import solve_sdp_barrier
+        C = np.eye(3)
+        A_list = [np.eye(3)]
+        b = np.array([1.0])
+        X0 = np.eye(2)
+
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list, b, X0)
+
+        X02 = np.eye(3)
+        C2 = np.eye(2)
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C2, A_list, b, X02)
+
+        A_list2 = [np.eye(2)]
+        with self.assertRaises(ValueError):
+            solve_sdp_barrier(C, A_list2, b, X02)
+
 if __name__ == '__main__':
     unittest.main()

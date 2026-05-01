@@ -33,6 +33,16 @@ def solve_eq_qp(G, c, A, b):
         raise ValueError("Constraint array b must be a 1D vector.")
 
     n = G.shape[0]
+
+    if G.shape[1] != n:
+        raise ValueError("Input matrix G must be square.")
+    if c.shape[0] != n:
+        raise ValueError("Input vector c must have the same dimension as G.")
+    if A is not None and A.size > 0:
+        if A.shape[1] != n:
+            raise ValueError("Constraint matrix A must have the same number of columns as G.")
+        if b.shape[0] != A.shape[0]:
+            raise ValueError("Constraint vector b must have the same number of rows as A.")
     # Handle cases where A is empty or None
     if A is None or A.size == 0:
         # Unconstrained QP: G x = -c

@@ -84,6 +84,16 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     if X0.ndim != 2:
         raise ValueError("Initial point X0 must be a 2D matrix.")
 
+    n = X0.shape[0]
+    if X0.shape[1] != n:
+        raise ValueError("Initial point X0 must be a square matrix.")
+    if C.shape != (n, n):
+        raise ValueError("Input matrix C must be square and have the same shape as X0.")
+    if b.shape[0] != len(A_list):
+        raise ValueError("Constraint vector b must have the same length as A_list.")
+    if not np.all([A.shape == (n, n) for A in A_list]):
+        raise ValueError("All constraint matrices in A_list must have the same shape as X0.")
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(C)):
