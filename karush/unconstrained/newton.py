@@ -51,6 +51,10 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         H = np.asarray(hess_f(x), dtype=float)
         if H.ndim != 2:
             raise ValueError("Hessian must be a 2D matrix.")
+        if H.shape[0] != H.shape[1]:
+            raise ValueError("Hessian must be a square matrix.")
+        if H.shape[0] != g.shape[0]:
+            raise ValueError("Hessian dimensions must match gradient dimensions.")
         # Solve H * p = -g
         try:
             p = np.linalg.solve(H, -g)
