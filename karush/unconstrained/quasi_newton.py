@@ -32,6 +32,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     # Performance optimization: Evaluate objective function once outside the loop
     # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
     fx = np.asarray(f(x), dtype=float)
+    fx_val = fx.item() if fx.size == 1 else fx
 
     for k in range(max_iter):
         if np.linalg.norm(g) < tol:
@@ -48,15 +49,24 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
 
         while True:
             f_new = np.asarray(f(x + alpha * p), dtype=float)
-            if np.all(f_new <= fx + alpha * expected_decrease):
-                break
+            f_new_val = f_new.item() if f_new.size == 1 else f_new
+
+            # Use scalar comparison or fallback to np.all for vector functions
+            if f_new.size == 1:
+                if f_new_val <= fx_val + alpha * expected_decrease:
+                    break
+            else:
+                if np.all(f_new_val <= fx_val + alpha * expected_decrease):
+                    break
+
             alpha *= rho
             if alpha < 1e-10: 
                 f_new = np.asarray(f(x + alpha * p), dtype=float)
+                f_new_val = f_new.item() if f_new.size == 1 else f_new
                 break
             
         x_new = x + alpha * p
-        fx = f_new
+        fx_val = f_new_val
         g_new = np.asarray(grad_f(x_new), dtype=float)
         if g_new.ndim != 1:
             raise ValueError("Gradient must be a 1D vector.")
@@ -84,7 +94,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
             U = np.column_stack([c1 * s, c1 * Hy + c2 * s])
             V = np.column_stack([Hy, s])
 
-            H = H + np.dot(U, V.T)
+            H += np.dot(U, V.T)
         else:
             # If ys is small, update might be unstable, so skip or restart H
             pass
