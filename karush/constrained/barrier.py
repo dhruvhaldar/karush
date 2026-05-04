@@ -53,6 +53,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             grad_g_val = np.asarray(grad_g_ineq(x), dtype=float)
             if grad_g_val.ndim != 2:
                 raise ValueError("Constraint gradient must be a 2D matrix.")
+            if grad_g_val.shape[0] != g_val.shape[0] or grad_g_val.shape[1] != x.shape[0]:
+                raise ValueError("Constraint gradient dimensions must match m x n.")
             
             # Gradient of barrier
             # grad ( - mu * sum log(-g_i) ) = sum ( -mu/(-g_i) * (-grad_g_i) ) = sum ( -mu/g_i * grad_g_i )
@@ -61,6 +63,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             grad_f_val = np.asarray(grad_f(x), dtype=float)
             if grad_f_val.ndim != 1:
                 raise ValueError("Gradient must be a 1D vector.")
+            if grad_f_val.shape[0] != x.shape[0]:
+                raise ValueError("Gradient dimension must match x.")
             grad_phi = grad_f_val + (-mu/g_val) @ grad_g_val
             
             if np.linalg.norm(grad_phi) < tol:
@@ -72,6 +76,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             hess_phi = np.asarray(hess_f(x), dtype=float)
             if hess_phi.ndim != 2:
                 raise ValueError("Hessian must be a 2D matrix.")
+            if hess_phi.shape[0] != x.shape[0] or hess_phi.shape[1] != x.shape[0]:
+                raise ValueError("Hessian must be a square matrix matching x dimensions.")
 
             # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
             # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
