@@ -28,6 +28,8 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     # before matrix operations or line searches to prevent unhandled ValueError DoS crashes.
     if g.ndim != 1:
         raise ValueError("Gradient must be a 1D vector.")
+    if g.shape[0] != x.shape[0]:
+        raise ValueError("Gradient dimension must match x.")
     g_norm_sq = np.dot(g, g)
     p = -g
     
@@ -70,6 +72,8 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         g_new = np.asarray(grad_f(x_new), dtype=float)
         if g_new.ndim != 1:
             raise ValueError("Gradient must be a 1D vector.")
+        if g_new.shape[0] != x.shape[0]:
+            raise ValueError("Gradient dimension must match x.")
         
         # Performance optimization: Cache expensive vector dot products.
         # Computing the norm squared once and reusing it avoids redundant O(n) operations
