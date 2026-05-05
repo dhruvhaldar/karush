@@ -28,6 +28,8 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     g = np.asarray(grad_f(x), dtype=float)
     if g.ndim != 1:
         raise ValueError("Gradient must be a 1D vector.")
+    if g.shape[0] != n:
+        raise ValueError("Gradient dimension must match x.")
     
     # Performance optimization: Evaluate objective function once outside the loop
     # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
@@ -70,6 +72,8 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         g_new = np.asarray(grad_f(x_new), dtype=float)
         if g_new.ndim != 1:
             raise ValueError("Gradient must be a 1D vector.")
+        if g_new.shape[0] != n:
+            raise ValueError("Gradient dimension must match x.")
         
         s = x_new - x
         y = g_new - g
