@@ -46,6 +46,8 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         # and can lead to unhandled exception DoS crashes if user functions return incorrectly dimensioned arrays.
         if g.ndim != 1:
             raise ValueError("Gradient must be a 1D vector.")
+        if g.shape[0] != x.shape[0]:
+            raise ValueError("Gradient dimension must match x.")
         if np.linalg.norm(g) < tol:
             break
             
