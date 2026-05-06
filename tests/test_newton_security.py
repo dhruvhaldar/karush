@@ -23,5 +23,13 @@ class TestSecurity(unittest.TestCase):
         with self.assertRaises(ValueError):
             newton_method(f, grad_f_bad, hess_f, [1.0, 1.0])
 
+    def test_newton_gradient_shape_mismatch(self):
+        def f(x): return 0.0
+        def grad_f(x): return np.array([1.0, 2.0]) # Shape (2,) while x is (1,)
+        def hess_f(x): return np.array([[1.0, 0.0], [0.0, 1.0]])
+
+        with self.assertRaises(ValueError):
+            newton_method(f, grad_f, hess_f, [0.0])
+
 if __name__ == '__main__':
     unittest.main()
