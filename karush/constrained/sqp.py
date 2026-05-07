@@ -1,5 +1,4 @@
 import numpy as np
-from .qp import solve_eq_qp
 
 def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_iter=20):
     """
@@ -27,6 +26,12 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
 
     history = [x.copy()]
     
+    # Optimization: pre-allocate KKT_mat and rhs lazily on the first iteration
+    # to avoid double evaluating grad_h(x).
+    KKT_mat = None
+    rhs = None
+    n = x.shape[0]
+
     for k in range(max_iter):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
@@ -53,22 +58,26 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         
         c_val = np.atleast_1d(c_val)
         
-        # Check convergence
-        # KKT conditions: norm(g + A.T @ lam) < tol and norm(c) < tol
-        # Here we just check the step size and constraint violation
-        if np.linalg.norm(c_val) < tol and k > 0:
-             # Also check gradient of lagrangian if we tracked lambda
-             pass
+        if KKT_mat is None:
+            m = A.shape[0]
+            KKT_mat = np.zeros((n + m, n + m))
+            rhs = np.empty(n + m)
 
-        # Solve QP subproblem:
-        # min 0.5 p' W p + g' p
-        # s.t. A p + c = 0 => A p = -c
+        # Performance optimization: Replace `solve_eq_qp` which allocates a new block matrix
+        # and rhs array every iteration with in-place updates to the pre-allocated ones.
+        KKT_mat[:n, :n] = W
+        KKT_mat[:n, n:] = A.T
+        KKT_mat[n:, :n] = A
+
+        rhs[:n] = -g
+        rhs[n:] = -c_val
         
         try:
-            p, lam_qp = solve_eq_qp(W, g, A, -c_val)
+            sol = np.linalg.solve(KKT_mat, rhs)
         except np.linalg.LinAlgError:
             break
         
+        p = sol[:n]
         x_new = x + p
         
         if np.linalg.norm(p) < tol and np.linalg.norm(c_val) < tol:
