@@ -24,6 +24,8 @@ def svec(M):
     idx_i, idx_j, off_diag = _get_svec_indices(n)
     if M.ndim != 2:
         raise ValueError("M must be a 2D matrix.")
+    if M.shape[0] != M.shape[1]:
+        raise ValueError("M must be a square matrix.")
     v = M[idx_i, idx_j]
 
     # Multiply off-diagonal elements by sqrt(2)
@@ -41,6 +43,8 @@ def smat(v, n):
     # This provides a >2x speedup over the previous advanced indexing method.
     if v.ndim != 1:
         raise ValueError("v must be a 1D vector.")
+    if v.shape[0] != n * (n + 1) // 2:
+        raise ValueError("v must have length n * (n + 1) / 2.")
     M = np.empty((n, n))
     idx_i, idx_j, off_diag = _get_svec_indices(n)
 

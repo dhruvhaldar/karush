@@ -53,6 +53,8 @@ def randomized_rounding(X, num_trials=100):
     X = np.asarray(X, dtype=float)
     if X.ndim != 2:
         raise ValueError("Input array X must be a 2D matrix.")
+    if X.shape[0] != X.shape[1]:
+        raise ValueError("Input array X must be a square matrix.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
