@@ -58,6 +58,15 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         
         c_val = np.atleast_1d(c_val)
         
+        if A.ndim != 2:
+            raise ValueError("Constraint gradient must be a 2D matrix.")
+        if A.shape[1] != x.shape[0]:
+            raise ValueError("Constraint gradient columns must match x dimensions.")
+        if c_val.ndim != 1:
+            raise ValueError("Constraint values must be a 1D vector.")
+        if c_val.shape[0] != A.shape[0]:
+            raise ValueError("Constraint values length must match number of constraint gradient rows.")
+
         if KKT_mat is None:
             m = A.shape[0]
             KKT_mat = np.zeros((n + m, n + m))
