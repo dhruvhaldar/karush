@@ -145,6 +145,12 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     W_svec = np.full(len(idx_a), np.sqrt(2))
     W_svec[idx_a == idx_b] = 1.0
 
+    # Precompute vectorized C matrix
+    # Performance optimization: svec is a linear operator. We precompute svec(C)
+    # outside the loop so we can replace `svec(C - mu * X_inv)` with
+    # `svec_C - mu * svec(X_inv)` inside the inner iteration.
+    svec_C = svec(C)
+
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
     KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
@@ -164,9 +170,10 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             except np.linalg.LinAlgError:
                 return X
             
-            # Gradient of barrier objective: C - mu * X^-1
-            Grad = C - mu * X_inv
-            grad_vec = svec(Grad)
+            # Gradient of barrier objective: svec(C - mu * X^-1)
+            # Performance optimization: Use linearity of svec to evaluate the gradient
+            # without allocating the dense O(n^2) matrix `Grad = C - mu * X_inv`.
+            grad_vec = svec_C - mu * svec(X_inv)
             
             # Hessian of barrier objective: H(D) = mu * X^-1 @ D @ X^-1
             # Performance optimization: Replace the O(n^5) loop with a true O(n^4)
