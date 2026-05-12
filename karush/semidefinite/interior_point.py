@@ -14,6 +14,12 @@ def svec(M):
     Multiplies off-diagonal elements by sqrt(2) to preserve inner product.
     Tr(A @ B) = svec(A).T @ svec(B)
     """
+    M = np.asarray(M, dtype=float)
+    if M.ndim != 2:
+        raise ValueError("M must be a 2D matrix.")
+    if M.shape[0] != M.shape[1]:
+        raise ValueError("M must be a square matrix.")
+
     n = M.shape[0]
 
     # Performance optimization: Replace nested Python loops with NumPy advanced indexing.
@@ -22,10 +28,6 @@ def svec(M):
     # Note: Advanced indexing `M[idx_i, idx_j]` already returns a copy.
     # Calling `.copy()` on top of it creates a redundant O(n^2) memory allocation.
     idx_i, idx_j, off_diag = _get_svec_indices(n)
-    if M.ndim != 2:
-        raise ValueError("M must be a 2D matrix.")
-    if M.shape[0] != M.shape[1]:
-        raise ValueError("M must be a square matrix.")
     v = M[idx_i, idx_j]
 
     # Multiply off-diagonal elements by sqrt(2)
@@ -41,6 +43,7 @@ def smat(v, n):
     # multiple passes over the 2D matrix. We scale the 1D vector copy first
     # and use bidirectional assignment to construct the matrix directly.
     # This provides a >2x speedup over the previous advanced indexing method.
+    v = np.asarray(v, dtype=float)
     if v.ndim != 1:
         raise ValueError("v must be a 1D vector.")
     if v.shape[0] != n * (n + 1) // 2:
