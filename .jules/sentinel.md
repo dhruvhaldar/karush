@@ -126,3 +126,8 @@
 **Vulnerability:** Core functions `svec` and `smat` in `karush/semidefinite/interior_point.py` verified the `.ndim` and `.shape` of input arrays but failed to explicitly coerce user inputs to NumPy arrays first. When users provided non-NumPy types like standard Python lists or scalars, expressions like `M.shape` or `v.ndim` threw unhandled `AttributeError` or `IndexError` exceptions.
 **Learning:** Validating properties of objects in Python without verifying or explicitly casting their type first allows simple inputs to crash execution. NumPy properties like `.shape` and `.ndim` are not present on raw Python lists or scalars.
 **Prevention:** Always forcefully cast or validate array inputs using `np.asarray(..., dtype=float)` *before* accessing `.shape` or `.ndim` properties to ensure input sanitization and prevent unhandled exception DoS vulnerabilities in array processing operations.
+
+## 2025-05-24 - Missing Strict Geometric Shape Validation DoS in Max-Cut Relaxation
+**Vulnerability:** The `max_cut_sdp_relaxation` function in `karush/convex/relaxations.py` accepted a weight matrix `W` and validated its dimensionality (`ndim == 2`) but failed to strictly validate that the matrix is geometrically square before performing operations and allocating constraints.
+**Learning:** Validating `ndim` is insufficient. Failing to validate squareness at the function boundary could lead to allocating incorrect-sized constraints or relying on deep internal solver checks, which may be bypassed or lead to unhandled exceptions if the internal implementations change.
+**Prevention:** Always perform strict geometric shape validations (e.g., `W.shape[0] == W.shape[1]`) at the API boundary before proceeding with allocation or calling internal solvers.

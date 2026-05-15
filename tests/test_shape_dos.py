@@ -24,5 +24,11 @@ class TestShapeDoS(unittest.TestCase):
         with self.assertRaises(ValueError):
             randomized_rounding(X)
 
+    def test_max_cut_sdp_relaxation_geometric_shape(self):
+        from karush.convex.relaxations import max_cut_sdp_relaxation
+        W = np.ones((5, 3))
+        with self.assertRaises(ValueError):
+            max_cut_sdp_relaxation(W)
+
 if __name__ == '__main__':
     unittest.main()
