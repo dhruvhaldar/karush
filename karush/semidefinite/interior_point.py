@@ -153,6 +153,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     # outside the loop so we can replace `svec(C - mu * X_inv)` with
     # `svec_C - mu * svec(X_inv)` inside the inner iteration.
     svec_C = svec(C)
+    svec_X = svec(X)
 
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
@@ -202,7 +203,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # KKT System
             # Performance optimization: `b` is already a NumPy array. Avoid `np.array(b)`
             # inside the loop which creates an unnecessary copy every iteration.
-            residuals = A_mat @ svec(X) - b
+            residuals = A_mat @ svec_X - b
             
             KKT_lhs[:dim_vec, :dim_vec] = H_mat
             rhs[:dim_vec] = -grad_vec
@@ -226,6 +227,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
                     np.linalg.cholesky(X_new)
                     step_accepted = True
                     X = X_new
+                    svec_X += alpha * dx_vec
                     break
                 except np.linalg.LinAlgError:
                     alpha *= 0.5
