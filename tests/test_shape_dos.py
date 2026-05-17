@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from karush.semidefinite.interior_point import svec, smat
-from karush.convex.relaxations import randomized_rounding
+from karush.convex.relaxations import randomized_rounding, max_cut_sdp_relaxation
 
 class TestShapeDoS(unittest.TestCase):
     def test_svec_geometric_shape(self):
@@ -23,6 +23,11 @@ class TestShapeDoS(unittest.TestCase):
         X = np.ones((5, 3))
         with self.assertRaises(ValueError):
             randomized_rounding(X)
+
+    def test_max_cut_geometric_shape_oom_prevention(self):
+        W = np.ones((5, 3))
+        with self.assertRaises(ValueError):
+            max_cut_sdp_relaxation(W)
 
 if __name__ == '__main__':
     unittest.main()
