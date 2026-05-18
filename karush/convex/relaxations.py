@@ -15,6 +15,8 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     W = np.asarray(W, dtype=float)
     if W.ndim != 2:
         raise ValueError("Input array W must be a 2D matrix.")
+    if W.shape[0] != W.shape[1]:
+        raise ValueError("Input array W must be a square matrix.")
 
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
