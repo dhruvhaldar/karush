@@ -26,6 +26,8 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         raise ValueError("Constraint arrays A and b must contain only finite numbers.")
     if not np.all(np.isfinite(x0)) or not np.all(np.isfinite(z0)):
         raise ValueError("Initial points x0 and z0 must contain only finite numbers.")
+    if np.any(x0 <= 0) or np.any(z0 <= 0):
+        raise ValueError("Initial points x0 and z0 must be strictly positive.")
 
     # Security Enhancement: Add input sanitization to validate array dimensions before passing
     # to np.linalg.solve or other matrix operations. Validating only for finite values is insufficient
