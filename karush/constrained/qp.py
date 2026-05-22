@@ -61,11 +61,7 @@ def solve_eq_qp(G, c, A, b):
     rhs[:n] = -c
     rhs[n:] = b
     
-    try:
-        sol = np.linalg.solve(KKT_mat, rhs)
-    except np.linalg.LinAlgError:
-        # Matrix might be singular
-        return np.zeros(n), np.zeros(m)
+    sol = np.linalg.solve(KKT_mat, rhs)
     
     x = sol[:n]
     lam = sol[n:]
