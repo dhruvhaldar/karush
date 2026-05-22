@@ -34,8 +34,12 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     
     # Performance optimization: Evaluate objective function once outside the loop
     # and cache the accepted line search value to avoid redundant f(x) calls per iteration.
-    fx = np.asarray(f(x), dtype=float)
-    fx_val = fx.item() if fx.size == 1 else fx
+    fx_raw = f(x)
+    try:
+        fx_val = float(fx_raw)
+    except (TypeError, ValueError):
+        fx = np.asarray(fx_raw, dtype=float)
+        fx_val = fx.item() if fx.size == 1 else fx
 
     for k in range(max_iter):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
@@ -74,11 +78,17 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         expected_decrease = c * np.dot(g, p)
 
         while True:
-            f_new = np.asarray(f(x + alpha * p), dtype=float)
-            f_new_val = f_new.item() if f_new.size == 1 else f_new
+            f_new_raw = f(x + alpha * p)
+            try:
+                f_new_val = float(f_new_raw)
+                is_scalar = True
+            except (TypeError, ValueError):
+                f_new = np.asarray(f_new_raw, dtype=float)
+                f_new_val = f_new.item() if f_new.size == 1 else f_new
+                is_scalar = f_new.size == 1
 
             # Use scalar comparison or fallback to np.all for vector functions
-            if f_new.size == 1:
+            if is_scalar:
                 if f_new_val <= fx_val + alpha * expected_decrease:
                     break
             else:
@@ -87,8 +97,12 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
 
             alpha *= rho
             if alpha < 1e-10: # Safety break
-                f_new = np.asarray(f(x + alpha * p), dtype=float)
-                f_new_val = f_new.item() if f_new.size == 1 else f_new
+                f_new_raw = f(x + alpha * p)
+                try:
+                    f_new_val = float(f_new_raw)
+                except (TypeError, ValueError):
+                    f_new = np.asarray(f_new_raw, dtype=float)
+                    f_new_val = f_new.item() if f_new.size == 1 else f_new
                 break
             
         x += alpha * p
