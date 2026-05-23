@@ -108,6 +108,6 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         g = g_new
         g_norm_sq = g_new_norm_sq
         x = x_new
-        history.append(x.copy())
+        history.append(x)
         
     return x, np.array(history)

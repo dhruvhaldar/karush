@@ -119,6 +119,6 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
             
         x = x_new
         g = g_new
-        history.append(x.copy())
+        history.append(x)
         
     return x, np.array(history)

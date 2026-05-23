@@ -106,7 +106,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 if alpha < 1e-8:
                     break
         
-        history.append(x.copy())
+        history.append(x)
         
         if mu < tol:
             break
