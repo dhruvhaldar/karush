@@ -91,10 +91,10 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         
         if np.linalg.norm(p) < tol and np.linalg.norm(c_val) < tol:
             x = x_new
-            history.append(x.copy())
+            history.append(x)
             break
             
         x = x_new
-        history.append(x.copy())
+        history.append(x)
         
     return x, np.array(history)
