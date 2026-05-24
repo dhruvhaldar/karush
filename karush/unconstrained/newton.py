@@ -63,12 +63,7 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         if H.shape[0] != g.shape[0]:
             raise ValueError("Hessian dimensions must match gradient dimensions.")
         # Solve H * p = -g
-        try:
-            p = np.linalg.solve(H, -g)
-        except np.linalg.LinAlgError:
-            # Fallback for singular Hessian or if simple Newton fails locally
-            # In a robust implementation, we might use trust region or modify H
-            p = -g 
+        p = np.linalg.solve(H, -g)
 
         # Line search (backtracking)
         alpha = 1.0

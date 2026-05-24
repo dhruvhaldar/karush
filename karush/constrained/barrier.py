@@ -85,10 +85,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             weights = mu / (g_val**2)
             hess_phi += (grad_g_val.T * weights) @ grad_g_val
             
-            try:
-                p = np.linalg.solve(hess_phi, -grad_phi)
-            except np.linalg.LinAlgError:
-                break
+            p = np.linalg.solve(hess_phi, -grad_phi)
                 
             # Line search to ensure x + alpha*p is feasible
             alpha = 1.0
