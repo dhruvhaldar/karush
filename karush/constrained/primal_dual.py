@@ -123,10 +123,7 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         rhs[:n] = rhs_1
         rhs[n:] = rhs_2
         
-        try:
-            sol = np.linalg.solve(KKT, rhs)
-        except np.linalg.LinAlgError:
-            break
+        sol = np.linalg.solve(KKT, rhs)
             
         dx = sol[:n]
         dy = sol[n:]

@@ -81,10 +81,7 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         rhs[:n] = -g
         rhs[n:] = -c_val
         
-        try:
-            sol = np.linalg.solve(KKT_mat, rhs)
-        except np.linalg.LinAlgError:
-            break
+        sol = np.linalg.solve(KKT_mat, rhs)
         
         p = sol[:n]
         x_new = x + p

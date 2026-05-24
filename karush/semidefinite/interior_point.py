@@ -174,10 +174,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             
         # Inner Newton loop for centering
         for inner in range(5):
-            try:
-                X_inv = np.linalg.inv(X)
-            except np.linalg.LinAlgError:
-                return X
+            X_inv = np.linalg.inv(X)
             
             # Gradient of barrier objective: svec(C - mu * X^-1)
             # Performance optimization: Use linearity of svec to evaluate the gradient
@@ -214,10 +211,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             rhs[:dim_vec] = -grad_vec
             rhs[dim_vec:] = -residuals
             
-            try:
-                sol = np.linalg.solve(KKT_lhs, rhs)
-            except np.linalg.LinAlgError:
-                break
+            sol = np.linalg.solve(KKT_lhs, rhs)
                 
             dx_vec = sol[:dim_vec]
             dX = smat(dx_vec, n)
