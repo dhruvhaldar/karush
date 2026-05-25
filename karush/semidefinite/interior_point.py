@@ -121,6 +121,14 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
         raise ValueError("Barrier parameter initial_mu must be strictly positive.")
 
     X = np.array(X0, dtype=float)
+
+    # Security Enhancement: Explicitly validate that the initial point is strictly positive definite.
+    # Otherwise, evaluating np.linalg.inv(X) inside the loop will cause an unhandled LinAlgError DoS.
+    try:
+        np.linalg.cholesky(X)
+    except np.linalg.LinAlgError:
+        raise ValueError("Initial point X0 must be strictly positive definite.")
+
     mu = initial_mu
     m = len(b)
     n = X.shape[0]

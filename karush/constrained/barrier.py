@@ -35,6 +35,11 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     if g_val.ndim != 1:
         raise ValueError("Constraint function must return a 1D vector.")
 
+    # Security Enhancement: Verify that the initial point is strictly feasible.
+    # Otherwise, evaluating the log-barrier function is undefined and will lead to DoS or infinite loops.
+    if np.any(g_val >= 0):
+        raise ValueError("Initial guess x0 must be strictly feasible.")
+
     for k in range(max_iter):
         
         # Inner loop: Minimize barrier function
