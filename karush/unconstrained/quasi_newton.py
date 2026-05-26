@@ -20,6 +20,8 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         raise ValueError("Maximum iterations max_iter exceeds safe limit.")
 
     n = len(x)
+    if n > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     H = np.eye(n)  # Inverse Hessian approximation
     history = [x.copy()]
     

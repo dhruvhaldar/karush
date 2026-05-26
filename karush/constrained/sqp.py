@@ -69,6 +69,8 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
 
         if KKT_mat is None:
             m = A.shape[0]
+            if n + m > 10000:
+                raise ValueError("System dimensions exceed safe limit for memory allocation.")
             KKT_mat = np.zeros((n + m, n + m))
             rhs = np.empty(n + m)
 

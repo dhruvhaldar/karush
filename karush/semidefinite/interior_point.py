@@ -164,6 +164,8 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
 
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
+    if dim_vec + m > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
     KKT_lhs[:dim_vec, dim_vec:] = A_mat.T
     KKT_lhs[dim_vec:, :dim_vec] = A_mat

@@ -52,6 +52,8 @@ def solve_eq_qp(G, c, A, b):
     
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # and direct assignment. np.block creates unnecessary memory allocations and copies.
+    if n + m > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     KKT_mat = np.zeros((n + m, n + m))
     KKT_mat[:n, :n] = G
     KKT_mat[:n, n:] = A.T
