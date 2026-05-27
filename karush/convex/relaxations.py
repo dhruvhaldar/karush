@@ -31,6 +31,11 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
 
     n = W.shape[0]
     
+    # Security Enhancement: Bound derived dimensions (n) to prevent memory exhaustion
+    # (OOM DoS vulnerabilities) when allocating the memory buffer for A_list and KKT blocks later.
+    if n > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     A_list = []
     b_list = []
     
