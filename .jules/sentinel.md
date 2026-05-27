@@ -152,3 +152,8 @@
 **Vulnerability:** Core mathematical solvers (QP, SQP, Primal-Dual, Interior-Point, BFGS) lazily pre-allocated dense O(N^2) KKT or Hessian matrices based on the sum of dimensions of input vectors (e.g. `n + m`). An attacker providing a long 1D constraint array (e.g., shape `(50000, 1)`, which is small in size) caused the solver to allocate a `(50000, 50000)` dense float64 matrix, instantly consuming ~18GB of RAM and crashing the server with a `MemoryError`.
 **Learning:** Validating input array dimensions and shapes is insufficient if the combined derived dimensions used for memory allocation are unbounded. Small payloads can easily trigger disproportionately massive O(N^2) memory allocations.
 **Prevention:** Always enforce a hard upper bound on the combined total dimensions (e.g. `n + m <= 10000`) before pre-allocating dense KKT matrices or block systems to prevent memory exhaustion DoS.
+
+## 2025-05-24 - Prevent OOM DoS in Max-Cut SDP Relaxation
+**Vulnerability:** The `max_cut_sdp_relaxation` function allocates an $O(N^3)$ memory buffer for `A_list` without validating that the final system dimensions are within safe bounds, leading to MemoryError exceptions when a large matrix is provided.
+**Learning:** It is crucial to validate the final derived dimensions (like `dim_vec + m`) of matrices to be pre-allocated before beginning the allocation loop to prevent OOM DoS attacks.
+**Prevention:** Always enforce a hard upper bound limit on the maximum derived dimensions before lazily pre-allocating large state matrices.
