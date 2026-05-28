@@ -157,3 +157,8 @@
 **Vulnerability:** The `max_cut_sdp_relaxation` function allocates an $O(N^3)$ memory buffer for `A_list` without validating that the final system dimensions are within safe bounds, leading to MemoryError exceptions when a large matrix is provided.
 **Learning:** It is crucial to validate the final derived dimensions (like `dim_vec + m`) of matrices to be pre-allocated before beginning the allocation loop to prevent OOM DoS attacks.
 **Prevention:** Always enforce a hard upper bound limit on the maximum derived dimensions before lazily pre-allocating large state matrices.
+
+## 2024-05-28 - Missing OOM Bound in Optimization Methods
+**Vulnerability:** Missing bounds on dimension limits in Newton and Barrier algorithms allowed OOM DoS via large vector inputs.
+**Learning:** In mathematical solvers allocating dense matrices (e.g., KKT matrices, Hessians), validating input array shapes is insufficient if derived dimensions are unbounded.
+**Prevention:** Always enforce a hard upper bound limit (e.g., n + m <= 10000) before lazily pre-allocating large state matrices to prevent OOM DoS vulnerabilities.
