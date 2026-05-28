@@ -102,3 +102,6 @@
 ## 2026-11-20 - Unnecessary Deep Copy in Iterative Solver Histories
 **Learning:** In iterative solvers, history lists often track state variables like `x` at each iteration using `history.append(x.copy())`. However, if `x` is updated via a reassignment that natively allocates a new array (e.g. `x_new = x + alpha * p; x = x_new`), calling `.copy()` is completely redundant and causes a >10x slowdown in the tracking loop due to duplicate memory allocation.
 **Action:** Only use `.copy()` when appending variables that were modified strictly in-place (e.g. `x += p`). Remove explicit `.copy()` calls when the state variable has just been reassigned to a newly created array.
+## 2024-05-28 - Fast 3D Array Pre-allocation for Matrix Lists
+**Learning:** In optimization problem setups, generating a list of constraint matrices (e.g., `A_list`) using a Python loop that iteratively calls `np.zeros((n, n))` is extremely slow for large `n` due to sequential Python overhead and repeated memory allocation calls.
+**Action:** Pre-allocate a 3D NumPy array for the entire stack of matrices at once (e.g., `A_stack = np.zeros((m, n, n))`), use advanced indexing or broadcasting to fill the non-zero elements, and then convert it to a list using `list(A_stack)`. This leverages C-level bulk memory allocation and vectorization, yielding >10x speedup for initialization steps.
