@@ -30,6 +30,8 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     x = np.array(x0, dtype=float)
     if x.ndim != 1:
         raise ValueError("Initial guess x0 must be a 1D vector.")
+    if len(x) > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     history = [x.copy()]
     
     # Performance optimization: Evaluate objective function once outside the loop
