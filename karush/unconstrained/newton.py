@@ -102,8 +102,10 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
                     f_new_val = f_new.item() if f_new.size == 1 else f_new
                 break
             
-        x += alpha * p
+        # Performance optimization: Replace in-place update with reassignment
+        # so we can append `x` directly to history without a redundant `.copy()` allocation.
+        x = x + alpha * p
         fx_val = f_new_val  # Cache the accepted function value for the next iteration
-        history.append(x.copy())
+        history.append(x)
         
     return x, np.array(history)
