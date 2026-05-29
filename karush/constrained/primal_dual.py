@@ -143,11 +143,13 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         if np.any(idx_z):
             alpha_d = min(1.0, 0.99 * np.min(-z[idx_z] / dz[idx_z]))
             
-        x += alpha_p * dx
+        # Performance optimization: Replace in-place update with reassignment
+        # so we can append `x` directly to history without a redundant `.copy()` allocation.
+        x = x + alpha_p * dx
         y += alpha_d * dy
         z += alpha_d * dz
         
-        history.append(x.copy())
+        history.append(x)
         
         if np.linalg.norm(r_L) < tol and np.linalg.norm(r_A) < tol and np.dot(x, z) < tol:
             break
