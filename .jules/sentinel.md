@@ -162,3 +162,7 @@
 **Vulnerability:** Missing bounds on dimension limits in Newton and Barrier algorithms allowed OOM DoS via large vector inputs.
 **Learning:** In mathematical solvers allocating dense matrices (e.g., KKT matrices, Hessians), validating input array shapes is insufficient if derived dimensions are unbounded.
 **Prevention:** Always enforce a hard upper bound limit (e.g., n + m <= 10000) before lazily pre-allocating large state matrices to prevent OOM DoS vulnerabilities.
+## 2025-05-30 - Prevent OOM DoS in Max-Cut SDP Relaxation 3D Allocations
+**Vulnerability:** The `max_cut_sdp_relaxation` function allocates an $O(n^3)$ memory buffer for `A_stack` but only validated that $n \le 10000$. For $n=10000$, a $10000 \times 10000 \times 10000$ array takes 8 Terabytes of RAM. An attacker supplying a small 10000x10000 array causes an immediate OOM crash.
+**Learning:** It is crucial to validate the final derived memory requirements (like $n^3$) for matrices to be pre-allocated, instead of using arbitrary generic limits like $10000$.
+**Prevention:** Always enforce a hard upper bound limit strictly correlated with the algorithm's actual spatial complexity before lazily pre-allocating large state matrices.
