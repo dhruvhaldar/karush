@@ -76,6 +76,13 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     # DoS Prevention: Convert to numpy arrays to prevent unhandled AttributeError on lists
     C = np.asarray(C, dtype=float)
     b = np.asarray(b, dtype=float)
+
+    # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating the massive A_list
+    m_check = len(b)
+    n_check = X0.shape[0] if hasattr(X0, 'shape') else len(X0)
+    if (n_check * (n_check + 1) // 2) + m_check > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     A_list = [np.asarray(A, dtype=float) for A in A_list]
     X0 = np.asarray(X0, dtype=float)
 
@@ -164,8 +171,6 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
 
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
-    if dim_vec + m > 10000:
-        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
     KKT_lhs[:dim_vec, dim_vec:] = A_mat.T
     KKT_lhs[dim_vec:, :dim_vec] = A_mat

@@ -166,3 +166,8 @@
 **Vulnerability:** The `max_cut_sdp_relaxation` function allocates an $O(n^3)$ memory buffer for `A_stack` but only validated that $n \le 10000$. For $n=10000$, a $10000 \times 10000 \times 10000$ array takes 8 Terabytes of RAM. An attacker supplying a small 10000x10000 array causes an immediate OOM crash.
 **Learning:** It is crucial to validate the final derived memory requirements (like $n^3$) for matrices to be pre-allocated, instead of using arbitrary generic limits like $10000$.
 **Prevention:** Always enforce a hard upper bound limit strictly correlated with the algorithm's actual spatial complexity before lazily pre-allocating large state matrices.
+
+## 2025-06-05 - DoS via Memory Exhaustion (OOM) from Late Dimension Validation
+**Vulnerability:** The Log-Barrier and SDP interior-point solvers performed bound checks on system dimensions (`n+m` or `dim_vec+m`) *after* large memory allocations or constraint conversions had already occurred (e.g., converting a list of 10,000 dense constraint matrices). An attacker supplying a structurally massive but initially valid input could trigger gigabytes of memory allocation before the bounds check fired, causing an immediate OOM crash.
+**Learning:** Bounds checking on derived geometric and mathematical dimensions must happen as the absolute first step in a solver, before *any* intermediate variables or constraints are allocated or converted to NumPy arrays.
+**Prevention:** Always validate total system dimensions (like `x.shape[0] + g_val.shape[0] <= 10000`) immediately after user function evaluation and before intermediate array allocations. For list-based constraints, compute dimensions algebraically (e.g., `m = len(A_list)`) and bound check *before* converting the list to dense arrays.
