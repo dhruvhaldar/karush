@@ -84,7 +84,8 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # Hessian of barrier
             # hess phi = hess f + sum( 1/g_i^2 * grad g_i * grad g_i^T ) + sum( -1/g_i * hess g_i )
             # Simplified: ignore hess g_i term (Gauss-Newton like approx)
-            hess_phi = np.asarray(hess_f(x), dtype=float)
+            # Security Enhancement: Explicitly copy the user-provided array before in-place updates to prevent state pollution
+            hess_phi = np.asarray(hess_f(x), dtype=float).copy()
             if hess_phi.ndim != 2:
                 raise ValueError("Hessian must be a 2D matrix.")
             if hess_phi.shape[0] != x.shape[0] or hess_phi.shape[1] != x.shape[0]:
