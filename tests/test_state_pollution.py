@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from karush.constrained.barrier import barrier_method
 
 def test_barrier_state_pollution():
