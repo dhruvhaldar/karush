@@ -105,3 +105,7 @@
 ## 2024-05-28 - Fast 3D Array Pre-allocation for Matrix Lists
 **Learning:** In optimization problem setups, generating a list of constraint matrices (e.g., `A_list`) using a Python loop that iteratively calls `np.zeros((n, n))` is extremely slow for large `n` due to sequential Python overhead and repeated memory allocation calls.
 **Action:** Pre-allocate a 3D NumPy array for the entire stack of matrices at once (e.g., `A_stack = np.zeros((m, n, n))`), use advanced indexing or broadcasting to fill the non-zero elements, and then convert it to a list using `list(A_stack)`. This leverages C-level bulk memory allocation and vectorization, yielding >10x speedup for initialization steps.
+
+## 2024-06-08 - Optimized SDP Barrier Hessian Construction
+**Learning:** In the SDP barrier method, the construction of the Hessian matrix `H_mat` involved explicitly allocating multiple intermediate matrices (`Vac`, `Vbd`, `Vad`, `Vbc`) using advanced indexing and storing them in memory before doing element-wise multiplication. This memory allocation overhead caused a significant performance bottleneck due to large temporary variables ($O(n^4)$ storage).
+**Action:** When performing complex matrix updates that can be factored into element-wise operations with advanced indexing, evaluate the multiplication directly (`X_inv_a[:, idx_a] * X_inv_b[:, idx_b]`) without assigning the intermediate arrays to explicit local variables. This avoids keeping large dense matrices explicitly in memory and leverages NumPy's efficient internal buffers.

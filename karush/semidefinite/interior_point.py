@@ -201,15 +201,12 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # direct computation using the algebraic expansion of X_inv @ D @ X_inv.
             X_inv_a = X_inv[idx_a]
             X_inv_b = X_inv[idx_b]
-            Vac = X_inv_a[:, idx_a]
-            Vbd = X_inv_b[:, idx_b]
-            Vad = X_inv_a[:, idx_b]
-            Vbc = X_inv_b[:, idx_a]
             
-            # Performance optimization: Avoid allocating a dense O(n^4) memory footprint explicitly
-            # with W_mat. Instead, modify M in-place and use 1D broadcasting for scaling.
-            M = Vac * Vbd
-            M += Vad * Vbc
+            # Performance optimization: Avoid allocating Vac, Vbd, Vad, Vbc matrices.
+            # Perform element-wise multiplication directly using advanced indexing
+            # to reduce memory allocation overhead and improve speed.
+            M = X_inv_a[:, idx_a] * X_inv_b[:, idx_b]
+            M += X_inv_a[:, idx_b] * X_inv_b[:, idx_a]
             # Adjust scaling by 0.5 because D has symmetric off-diagonal elements divided by sqrt(2)
             # The exact derivation yields W_svec factors and a 0.5 coefficient.
             M *= (mu * 0.5)
