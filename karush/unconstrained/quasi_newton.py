@@ -42,6 +42,12 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         fx = np.asarray(fx_raw, dtype=float)
         fx_val = fx.item() if fx.size == 1 else fx
 
+    # Performance optimization: Pre-allocate U and V outside the loop and use
+    # in-place assignment instead of np.column_stack to avoid redundant memory
+    # allocation and improve speed.
+    U = np.empty((n, 2))
+    V = np.empty((n, 2))
+
     for k in range(max_iter):
         if np.linalg.norm(g) < tol:
             break
@@ -111,8 +117,10 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
             c1 = -rho_inv
             c2 = rho_inv * (rho_inv * yHy + 1.0)
 
-            U = np.column_stack([c1 * s, c1 * Hy + c2 * s])
-            V = np.column_stack([Hy, s])
+            U[:, 0] = c1 * s
+            U[:, 1] = c1 * Hy + c2 * s
+            V[:, 0] = Hy
+            V[:, 1] = s
 
             H += np.dot(U, V.T)
         else:

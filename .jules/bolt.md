@@ -109,3 +109,7 @@
 ## 2024-06-08 - Optimized SDP Barrier Hessian Construction
 **Learning:** In the SDP barrier method, the construction of the Hessian matrix `H_mat` involved explicitly allocating multiple intermediate matrices (`Vac`, `Vbd`, `Vad`, `Vbc`) using advanced indexing and storing them in memory before doing element-wise multiplication. This memory allocation overhead caused a significant performance bottleneck due to large temporary variables ($O(n^4)$ storage).
 **Action:** When performing complex matrix updates that can be factored into element-wise operations with advanced indexing, evaluate the multiplication directly (`X_inv_a[:, idx_a] * X_inv_b[:, idx_b]`) without assigning the intermediate arrays to explicit local variables. This avoids keeping large dense matrices explicitly in memory and leverages NumPy's efficient internal buffers.
+
+## 2024-06-11 - Pre-allocate and assign matrices to avoid np.column_stack overhead
+**Learning:** In iterative solver loops, using `np.column_stack` inside the loop causes repeated memory allocation overhead, which becomes a bottleneck. Pre-allocating `np.empty((n, 2))` outside the loop and assigning columns directly `U[:, 0] = ...` provides a measurable speedup.
+**Action:** Pre-allocate memory outside hot loops and assign values in-place rather than relying on NumPy concatenation functions like `np.column_stack` or `np.block`.
