@@ -146,12 +146,14 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     # Performance optimization: Replace Python loop and multiple svec() calls
     # with a single vectorized advanced indexing operation over the stacked 3D array.
     # This provides ~11x speedup for the constraint matrix vectorization preprocessing.
+    # Further optimization: Instead of allocating a massive 3D `A_stack` just to extract
+    # a 2D matrix, we pre-allocate the 2D matrix and fill it in a loop. This cuts memory
+    # delta drastically and avoids unhandled OOM for bounds nearing 10k dimensions.
     if m > 0:
         idx_i, idx_j, off_diag = _get_svec_indices(n)
-        A_stack = np.array(A_list)
-        A_mat = A_stack[:, idx_i, idx_j]
-        if A_mat.dtype != float:
-            A_mat = A_mat.astype(float)
+        A_mat = np.empty((m, dim_vec), dtype=float)
+        for i in range(m):
+            A_mat[i, :] = A_list[i][idx_i, idx_j]
         A_mat[:, off_diag] *= np.sqrt(2)
     else:
         A_mat = np.empty((0, dim_vec))
