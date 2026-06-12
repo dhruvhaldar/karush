@@ -36,12 +36,13 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     if n > 500:
         raise ValueError("System dimensions exceed safe limit for memory allocation.")
 
-    # Performance optimization: Replace Python loop and multiple np.zeros() allocations
-    # with a single 3D array pre-allocation and fast indexing.
-    A_stack = np.zeros((n, n, n))
-    idx = np.arange(n)
-    A_stack[idx, idx, idx] = 1.0
-    A_list = list(A_stack)
+    # Performance optimization: Avoid O(n^3) 3D array pre-allocation which causes severe memory
+    # spikes. Instead, use a loop with repeated np.zeros() calls to leverage lazy memory allocation.
+    A_list = []
+    for i in range(n):
+        A = np.zeros((n, n))
+        A[i, i] = 1.0
+        A_list.append(A)
     b_list = [1.0] * n
         
     X0 = np.eye(n)
