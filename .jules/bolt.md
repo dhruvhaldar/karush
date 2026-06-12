@@ -116,3 +116,7 @@
 ## 2024-06-28 - Optimize Matrix Lists Vectorization with Loop Fill
 **Learning:** In constraint preprocessing algorithms (like symmetric vectorization `svec`), converting a Python list of matrices into a dense 3D stack via `np.array(A_list)` creates a massive, temporary $O(m \times n^2)$ array. This causes a huge memory spike and often crashes with unhandled Out-Of-Memory exceptions before filtering operations (like `A_stack[:, idx_i, idx_j]`) can extract the needed 2D matrix.
 **Action:** Replace `np.array(A_list)` stacking followed by advanced 3D indexing. Instead, pre-allocate the target 2D matrix with `np.empty((m, dim_vec))` and populate it directly inside a fast `for` loop (`A_mat[i, :] = A_list[i][idx_i, idx_j]`). This completely avoids allocating the massive intermediate 3D block, saving substantial peak memory without sacrificing speed.
+
+## 2024-06-29 - Avoid O(n^3) 3D array pre-allocation for constraint matrices
+**Learning:** In mathematical problem setups (like SDP relaxations), pre-allocating a dense 3D NumPy array (e.g., `A_stack = np.zeros((n, n, n))`) to generate constraint matrices forces $O(n^3)$ memory allocation and causes severe memory spikes or OOM crashes.
+**Action:** Instead, use a loop with repeated `np.zeros()` calls (e.g., `[np.zeros((n, n)) for _ in range(n)]`), which leverages OS-level lazy memory allocation to significantly reduce the resident set size and overhead.
