@@ -96,7 +96,12 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
 
         # Fletcher-Reeves update
         beta = g_new_norm_sq / (g_norm_sq + 1e-10)
-        p_new = -g_new + beta * p
+        # Performance optimization: Replace explicit array allocation p_new = -g_new + beta * p
+        # with in-place modifications to the existing search direction vector p.
+        # This avoids redundant O(n) memory allocation overhead inside the inner loop.
+        p *= beta
+        p -= g_new
+        p_new = p
         
         # FIX: Reset to steepest descent if not a descent direction
         # Security Enhancement: Prevent division-by-zero or unhandled math exceptions if dot product is evaluated on incorrectly shaped arrays.

@@ -120,3 +120,7 @@
 ## 2024-06-29 - Avoid O(n^3) 3D array pre-allocation for constraint matrices
 **Learning:** In mathematical problem setups (like SDP relaxations), pre-allocating a dense 3D NumPy array (e.g., `A_stack = np.zeros((n, n, n))`) to generate constraint matrices forces $O(n^3)$ memory allocation and causes severe memory spikes or OOM crashes.
 **Action:** Instead, use a loop with repeated `np.zeros()` calls (e.g., `[np.zeros((n, n)) for _ in range(n)]`), which leverages OS-level lazy memory allocation to significantly reduce the resident set size and overhead.
+
+## 2024-07-02 - In-place search direction updates in Conjugate Gradient
+**Learning:** In iterative solvers like Conjugate Gradient, calculating the new search direction vector with `p_new = -g_new + beta * p` explicitly allocates a new array on every iteration. This redundant memory allocation creates measurable overhead in tight inner loops.
+**Action:** Replace the explicit array allocation with in-place modifications to the existing search direction vector (`p *= beta`, `p -= g_new`). This avoids memory allocation overhead inside the inner loop, providing a significant speedup for large dimensional problems.
