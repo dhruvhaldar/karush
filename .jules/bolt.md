@@ -124,3 +124,6 @@
 ## 2024-07-02 - In-place search direction updates in Conjugate Gradient
 **Learning:** In iterative solvers like Conjugate Gradient, calculating the new search direction vector with `p_new = -g_new + beta * p` explicitly allocates a new array on every iteration. This redundant memory allocation creates measurable overhead in tight inner loops.
 **Action:** Replace the explicit array allocation with in-place modifications to the existing search direction vector (`p *= beta`, `p -= g_new`). This avoids memory allocation overhead inside the inner loop, providing a significant speedup for large dimensional problems.
+## 2026-06-15 - Avoid np.linalg.norm and np.sqrt in tight inner loops
+**Learning:** Checking termination conditions with `np.linalg.norm(g) < tol` or `np.sqrt(g_norm_sq) < tol` inside tight inner loops is slow due to the overhead of the functions and square root calculation.
+**Action:** Precompute `tol_sq = tol**2` outside the inner loop and evaluate the condition as `np.dot(g, g) < tol_sq` or `g_norm_sq < tol_sq` to eliminate the repeated calculation overhead.
