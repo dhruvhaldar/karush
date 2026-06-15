@@ -43,6 +43,9 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         fx = np.asarray(fx_raw, dtype=float)
         fx_val = fx.item() if fx.size == 1 else fx
 
+    # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
@@ -54,7 +57,7 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
             raise ValueError("Gradient must be a 1D vector.")
         if g.shape[0] != x.shape[0]:
             raise ValueError("Gradient dimension must match x.")
-        if np.linalg.norm(g) < tol:
+        if np.dot(g, g) < tol_sq:
             break
             
         H = np.asarray(hess_f(x), dtype=float)

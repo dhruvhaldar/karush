@@ -1,0 +1,27 @@
+import time
+import numpy as np
+from karush.unconstrained.newton import newton_method
+
+def rosenbrock(x):
+    return (1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2
+
+def rosenbrock_grad(x):
+    g = np.zeros_like(x)
+    g[0] = -2 * (1 - x[0]) - 400 * x[0] * (x[1] - x[0]**2)
+    g[1] = 200 * (x[1] - x[0]**2)
+    return g
+
+def rosenbrock_hess(x):
+    H = np.zeros((2, 2))
+    H[0, 0] = 2 - 400 * x[1] + 1200 * x[0]**2
+    H[0, 1] = -400 * x[0]
+    H[1, 0] = -400 * x[0]
+    H[1, 1] = 200
+    return H
+
+x0 = [-1.2, 1.0]
+
+start = time.time()
+for _ in range(5000):
+    newton_method(rosenbrock, rosenbrock_grad, rosenbrock_hess, x0, tol=1e-8, max_iter=200)
+print("Time Newton:", time.time() - start)

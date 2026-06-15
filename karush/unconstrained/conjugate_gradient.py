@@ -42,8 +42,11 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         fx = np.asarray(fx_raw, dtype=float)
         fx_val = fx.item() if fx.size == 1 else fx
 
+    # Performance optimization: Precompute tol**2 to avoid np.sqrt in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
-        if np.sqrt(g_norm_sq) < tol:
+        if g_norm_sq < tol_sq:
             break
             
         # Line search
