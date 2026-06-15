@@ -79,7 +79,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
 
     # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating the massive A_list
     m_check = len(b)
-    n_check = X0.shape[0] if hasattr(X0, 'shape') else len(X0)
+    n_check = len(X0)
     if (n_check * (n_check + 1) // 2) + m_check > 10000:
         raise ValueError("System dimensions exceed safe limit for memory allocation.")
 

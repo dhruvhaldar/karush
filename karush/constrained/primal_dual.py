@@ -10,6 +10,12 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     This is a simplified implementation.
     G must be positive semidefinite.
     """
+    # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating massive arrays
+    n_check = len(G)
+    m_check = len(b)
+    if n_check + m_check > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     # DoS Prevention: Convert inputs to numpy arrays to prevent unhandled AttributeError on lists
     G = np.asarray(G, dtype=float)
     c = np.asarray(c, dtype=float)
@@ -75,8 +81,6 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
-    if n + m > 10000:
-        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     KKT = np.zeros((n + m, n + m))
     KKT[:n, :n] = G
     KKT[:n, n:] = -A.T

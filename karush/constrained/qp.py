@@ -10,6 +10,12 @@ def solve_eq_qp(G, c, A, b):
     [ G  A^T ] [ x ] = [ -c ]
     [ A   0  ] [ lambda ]   [ b  ]
     """
+    # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating massive arrays
+    n_check = len(G)
+    m_check = len(A) if A is not None and len(A) > 0 else 0
+    if n_check + m_check > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     G = np.asarray(G, dtype=float)
     c = np.asarray(c, dtype=float)
     if A is not None:
@@ -52,8 +58,6 @@ def solve_eq_qp(G, c, A, b):
     
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # and direct assignment. np.block creates unnecessary memory allocations and copies.
-    if n + m > 10000:
-        raise ValueError("System dimensions exceed safe limit for memory allocation.")
     KKT_mat = np.zeros((n + m, n + m))
     KKT_mat[:n, :n] = G
     KKT_mat[:n, n:] = A.T

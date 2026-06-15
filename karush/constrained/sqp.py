@@ -9,6 +9,11 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     This is a local SQP method without line search or merit function, 
     intended for demonstration purposes.
     """
+    # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating massive arrays
+    n_check = len(x0)
+    if n_check > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     x = np.array(x0, dtype=float)
     if x.ndim != 1:
         raise ValueError("Initial guess x0 must be a 1D vector.")
