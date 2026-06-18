@@ -46,6 +46,9 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     if np.any(g_val >= 0):
         raise ValueError("Initial guess x0 must be strictly feasible.")
 
+    # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
         
         # Inner loop: Minimize barrier function
@@ -78,7 +81,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 raise ValueError("Gradient dimension must match x.")
             grad_phi = grad_f_val + (-mu/g_val) @ grad_g_val
             
-            if np.linalg.norm(grad_phi) < tol:
+            if np.dot(grad_phi, grad_phi) < tol_sq:
                 break
                 
             # Hessian of barrier

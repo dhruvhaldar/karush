@@ -37,6 +37,9 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     rhs = None
     n = x.shape[0]
 
+    # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
         # DoS Prevention: Convert function outputs to numpy arrays to prevent unhandled
         # AttributeError/TypeError exceptions if user functions return standard Python lists.
@@ -93,7 +96,7 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         p = sol[:n]
         x_new = x + p
         
-        if np.linalg.norm(p) < tol and np.linalg.norm(c_val) < tol:
+        if np.dot(p, p) < tol_sq and np.dot(c_val, c_val) < tol_sq:
             x = x_new
             history.append(x)
             break

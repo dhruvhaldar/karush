@@ -90,6 +90,9 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     diag_indices = np.diag_indices(n)
     diag_G = np.diag(G)
 
+    # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
         # Residuals
         r_L = G @ x + c - A.T @ y - z
@@ -155,7 +158,7 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         
         history.append(x)
         
-        if np.linalg.norm(r_L) < tol and np.linalg.norm(r_A) < tol and np.dot(x, z) < tol:
+        if np.dot(r_L, r_L) < tol_sq and np.dot(r_A, r_A) < tol_sq and np.dot(x, z) < tol:
             break
             
     return x, np.array(history)
