@@ -184,6 +184,9 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     # `svec_X += alpha * dx_vec`.
     svec_X = svec(X)
 
+    # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
+    tol_sq = tol**2
+
     for k in range(max_iter):
         
         if mu < tol:
@@ -248,7 +251,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             if not step_accepted:
                 break
                 
-            if np.linalg.norm(dx_vec) < tol:
+            if np.dot(dx_vec, dx_vec) < tol_sq:
                 break
         
         mu *= 0.5
