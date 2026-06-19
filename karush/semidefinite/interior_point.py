@@ -73,15 +73,15 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     
     This is a basic implementation for small-scale SDPs.
     """
-    # DoS Prevention: Convert to numpy arrays to prevent unhandled AttributeError on lists
-    C = np.asarray(C, dtype=float)
-    b = np.asarray(b, dtype=float)
-
-    # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating the massive A_list
+    # Security Enhancement: Prevent memory exhaustion (OOM DoS) by validating bounds before np.asarray conversions
     m_check = len(b)
     n_check = len(X0)
     if (n_check * (n_check + 1) // 2) + m_check > 10000:
         raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
+    # DoS Prevention: Convert to numpy arrays to prevent unhandled AttributeError on lists
+    C = np.asarray(C, dtype=float)
+    b = np.asarray(b, dtype=float)
 
     A_list = [np.asarray(A, dtype=float) for A in A_list]
     X0 = np.asarray(X0, dtype=float)

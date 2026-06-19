@@ -10,6 +10,10 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
     It does not explicitly use the line search for the inner minimization, 
     but assumes the function behaves well locally.
     """
+    # Security Enhancement: Bound dimensions before allocating arrays to prevent OOM DoS
+    if len(x0) > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     x = np.array(x0, dtype=float)
     if x.ndim != 1:
         raise ValueError("Initial guess x0 must be a 1D vector.")

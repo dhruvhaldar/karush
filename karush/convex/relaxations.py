@@ -11,6 +11,10 @@ def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     we want to maximize sum_{i<j} W_ij (1 - x_i x_j)/2.
     This is equivalent to minimizing x^T W x.
     """
+    # Security Enhancement: Bound dimensions before allocating arrays to prevent OOM DoS
+    if len(W) > 500:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     # DoS Prevention: Convert to numpy array to prevent unhandled AttributeError on lists
     W = np.asarray(W, dtype=float)
     if W.ndim != 2:

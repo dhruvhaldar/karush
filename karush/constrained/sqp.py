@@ -10,8 +10,7 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
     intended for demonstration purposes.
     """
     # Security Enhancement: Prevent memory exhaustion (OOM DoS) before allocating massive arrays
-    n_check = len(x0)
-    if n_check > 10000:
+    if len(x0) > 10000:
         raise ValueError("System dimensions exceed safe limit for memory allocation.")
 
     x = np.array(x0, dtype=float)
