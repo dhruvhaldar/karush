@@ -77,8 +77,13 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
 
         expected_decrease = c * np.dot(g, p)
 
+        # Performance optimization: Compute step = alpha * p once and scale
+        # it in place (step *= rho) during backtracking instead of re-evaluating
+        # alpha * p. This avoids redundant O(n) array allocations per iteration.
+        step = alpha * p
+
         while True:
-            f_new_raw = f(x + alpha * p)
+            f_new_raw = f(x + step)
             try:
                 f_new_val = float(f_new_raw)
                 is_scalar = True
@@ -96,8 +101,9 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
                     break
 
             alpha *= rho
+            step *= rho
             if alpha < 1e-10: # Safety break
-                f_new_raw = f(x + alpha * p)
+                f_new_raw = f(x + step)
                 try:
                     f_new_val = float(f_new_raw)
                 except (TypeError, ValueError):
@@ -107,7 +113,7 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
             
         # Performance optimization: Replace in-place update with reassignment
         # so we can append `x` directly to history without a redundant `.copy()` allocation.
-        x = x + alpha * p
+        x = x + step
         fx_val = f_new_val  # Cache the accepted function value for the next iteration
         history.append(x)
         
