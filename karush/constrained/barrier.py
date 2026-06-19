@@ -104,8 +104,12 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 
             # Line search to ensure x + alpha*p is feasible
             alpha = 1.0
+            # Performance optimization: Compute step = alpha * p once and scale
+            # it in place (step *= 0.5) during backtracking instead of re-evaluating
+            # alpha * p. This avoids redundant O(n) array allocations per iteration.
+            step = alpha * p
             while True:
-                x_new = x + alpha * p
+                x_new = x + step
                 g_new_val = np.asarray(g_ineq(x_new), dtype=float)
                 if g_new_val.ndim != 1:
                     raise ValueError("Constraint function must return a 1D vector.")
@@ -115,6 +119,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                     g_val = g_new_val  # Cache the accepted constraint value for the next iteration
                     break
                 alpha *= 0.5
+                step *= 0.5
                 if alpha < 1e-8:
                     break
         

@@ -127,3 +127,7 @@
 ## 2026-06-15 - Avoid np.linalg.norm and np.sqrt in tight inner loops
 **Learning:** Checking termination conditions with `np.linalg.norm(g) < tol` or `np.sqrt(g_norm_sq) < tol` inside tight inner loops is slow due to the overhead of the functions and square root calculation.
 **Action:** Precompute `tol_sq = tol**2` outside the inner loop and evaluate the condition as `np.dot(g, g) < tol_sq` or `g_norm_sq < tol_sq` to eliminate the repeated calculation overhead.
+
+## 2026-06-19 - Avoid redundant array allocation in step calculation
+**Learning:** In optimization loops, calculating the step update vector `step = alpha * p` and then `x_new = x + alpha * p` causes an extra redundant array allocation because `alpha * p` is evaluated twice. It's faster to store the result of `alpha * p` as a `step` variable, and iteratively update it via `step *= rho` if `alpha *= rho` in a line search. This avoids an `O(n)` array allocation on every line search iteration.
+**Action:** When performing a line search with a backtracking parameter `rho`, compute the initial step explicitly `step = alpha * p` and in the line search loop, update `step` in-place (`step *= rho`) rather than evaluating `x + alpha * p` which re-allocates `alpha * p` repeatedly.

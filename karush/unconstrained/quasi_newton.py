@@ -64,8 +64,13 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         
         expected_decrease = c * np.dot(g, p)
 
+        # Performance optimization: Compute step = alpha * p once and scale
+        # it in place (step *= rho) during backtracking instead of re-evaluating
+        # alpha * p. This avoids redundant O(n) array allocations per iteration.
+        step = alpha * p
+
         while True:
-            f_new_raw = f(x + alpha * p)
+            f_new_raw = f(x + step)
             try:
                 f_new_val = float(f_new_raw)
                 is_scalar = True
@@ -83,8 +88,9 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
                     break
 
             alpha *= rho
+            step *= rho
             if alpha < 1e-10: 
-                f_new_raw = f(x + alpha * p)
+                f_new_raw = f(x + step)
                 try:
                     f_new_val = float(f_new_raw)
                 except (TypeError, ValueError):
@@ -92,7 +98,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
                     f_new_val = f_new.item() if f_new.size == 1 else f_new
                 break
             
-        x_new = x + alpha * p
+        x_new = x + step
         fx_val = f_new_val
         g_new = np.asarray(grad_f(x_new), dtype=float)
         if g_new.ndim != 1:
