@@ -179,3 +179,8 @@
 **Vulnerability:** Core mathematical solvers (like `solve_eq_qp` and `primal_dual_qp`) evaluated system dimensions and applied safe memory bounds (`n + m <= 10000`) *after* converting input lists to dense NumPy arrays. An attacker supplying massive inputs as lists (e.g., 50000x50000) bypassed early checks, triggering memory exhaustion (18GB+) when `np.asarray` allocated the intermediate dense array before the bounds check fired.
 **Learning:** Bounds checking on derived geometric and mathematical dimensions must happen as the absolute first step in a solver, before *any* intermediate variables or constraints are allocated or converted to NumPy arrays.
 **Prevention:** Always validate total system dimensions (like `len(G) + len(A) <= 10000`) immediately at the function entry point using Python's native `len()`, before performing `np.asarray` conversions on potentially massive lists.
+
+## 2025-10-24 - DoS via Memory Exhaustion (OOM) from Late Dimension Validation 2
+**Vulnerability:** Similar to lists of matrices, passing a massive 1D list as the initial point to various solvers (like `X0`, `x0`, `W`, etc.) would trigger unhandled OOM errors when `np.asarray()` tried to convert the massive list into a dense float array, before length-based bounds checking occurred.
+**Learning:** Checking dimensions to prevent OOM must be done strictly prior to any intermediate memory allocation or array conversions in the function, specifically before `np.asarray()`.
+**Prevention:** Placed the `len(x0) > 10000` bounds check (and similar limits) explicitly before any `np.array` or `np.asarray` conversions on the same object.

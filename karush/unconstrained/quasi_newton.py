@@ -4,6 +4,10 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     BFGS Quasi-Newton method.
     """
+    # Security Enhancement: Bound dimensions before allocating arrays to prevent OOM DoS
+    if len(x0) > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     x = np.array(x0, dtype=float)
     if x.ndim != 1:
         raise ValueError("Initial guess x0 must be a 1D vector.")

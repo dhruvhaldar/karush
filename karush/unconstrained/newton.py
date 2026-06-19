@@ -16,6 +16,10 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         x_opt: Optimal solution.
         history: List of iterates.
     """
+    # Security Enhancement: Bound dimensions before allocating arrays to prevent OOM DoS
+    if len(x0) > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     # Security Enhancement: Add input sanitization to reject non-finite values (NaN/Inf)
     # which can lead to silent data corruption, infinite loops in solvers, or unhandled exceptions.
     if not np.all(np.isfinite(x0)):
