@@ -86,8 +86,12 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         # alpha * p. This avoids redundant O(n) array allocations per iteration.
         step = alpha * p
 
+        # Performance optimization: Avoid redundant array evaluation in line search acceptance
+        # By assigning `x_new = x + step` first and passing it to `f`, we avoid evaluating `x + step`
+        # again after the loop, saving an O(n) array allocation per line search acceptance.
         while True:
-            f_new_raw = f(x + step)
+            x_new = x + step
+            f_new_raw = f(x_new)
             try:
                 f_new_val = float(f_new_raw)
                 is_scalar = True
@@ -107,7 +111,8 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
             alpha *= rho
             step *= rho
             if alpha < 1e-10: # Safety break
-                f_new_raw = f(x + step)
+                x_new = x + step
+                f_new_raw = f(x_new)
                 try:
                     f_new_val = float(f_new_raw)
                 except (TypeError, ValueError):
@@ -117,7 +122,7 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
             
         # Performance optimization: Replace in-place update with reassignment
         # so we can append `x` directly to history without a redundant `.copy()` allocation.
-        x = x + step
+        x = x_new
         fx_val = f_new_val  # Cache the accepted function value for the next iteration
         history.append(x)
         
