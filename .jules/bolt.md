@@ -29,6 +29,7 @@
 ## 2026-10-24 - Caching Vector Dot Products in Iterative Algorithms
 **Learning:** In iterative optimization algorithms like Conjugate Gradient, vector dot products (e.g., squared gradient norms) are often computed multiple times per iteration for both stopping criteria and update steps. This results in redundant O(n) computations.
 **Action:** Calculate the squared norm or dot product once per iteration, cache the result, and reuse it across the iteration (e.g., using `np.sqrt(norm_sq) < tol` for stopping criteria). This simple caching prevents redundant linear time operations and improves overall algorithm speed.
+
 ## 2024-05-18 - Caching np.triu_indices in svec and smat
 **Learning:** In frequently called numerical routines like `svec` and `smat` in `karush`, caching the output of `np.triu_indices(n)` and its associated boolean masks in module-level dictionaries based on matrix size `n` provides significant speedups by eliminating redundant array allocations inside iterative solver loops.
 **Action:** Cache these indices in a module-level dictionary to avoid allocating arrays repeatedly.
@@ -36,9 +37,11 @@
 ## 2026-04-08 - In-place Diagonal Updates vs Full Matrix Addition
 **Learning:** In iterative algorithms where the only changing part of a large dense matrix `M` is its diagonal (e.g. `M = G + np.diag(z / x)` where `G` is static), creating an explicit O(n^2) diagonal matrix using `np.diag()` and adding it to the full base matrix, and then assigning the full block into a larger KKT matrix is an unnecessary O(n^2) bottleneck.
 **Action:** Pre-assign the static part (`KKT[:n, :n] = G`) outside the loop and precompute `diag_indices = np.diag_indices(n)` and `diag_G = np.diag(G)`. Inside the loop, update only the diagonal elements directly using advanced indexing (`KKT[diag_indices] = diag_G + z / x`). This reduces the update complexity from O(n^2) to O(n) and prevents memory allocations.
+
 ## 2024-05-24 - Optimize Barrier Gradient Computation
 **Learning:** In NumPy, broadcasting followed by a sum over an axis (`np.sum(A[:, None] * B, axis=0)`) is significantly slower and uses more memory than a direct matrix-vector multiplication (`A @ B`), especially when dealing with constraints in optimization algorithms like the log-barrier method. The former relies on creating temporary arrays and Python-level looping constructs beneath the surface, while the latter hooks directly into highly optimized BLAS Level 2 operations.
 **Action:** Always prefer `@` (or `np.dot`) over `np.sum` with broadcasting when accumulating gradients or performing weighted sums of vectors.
+
 ## 2024-05-15 - Vectorize repeated function calls over a list of matrices
 **Learning:** Preprocessing logic like mapping a function (such as `svec` to vectorize matrices) over a list of numpy matrices using a Python loop or list comprehension introduces significant Python loop overhead. For $m$ constraint matrices, `[svec(Ai) for Ai in A_list]` requires repeatedly calling advanced indexing and NumPy operations in Python.
 **Action:** Instead of iterating through a list, convert the list of 2D matrices into a 3D NumPy array using `np.array(A_list)` (which is very fast) and apply advanced indexing simultaneously on the stacked array (`A_stack[:, idx_i, idx_j]`). This leverages C-level vectorization for preprocessing multiple constraints simultaneously, providing a roughly ~10x speedup for this specific data transformation step in SDP solvers.
@@ -78,12 +81,15 @@
 ## 2024-05-25 - Optimize BFGS rank-2 memory allocations
 **Learning:** During BFGS updates, `H = H + np.dot(U, V.T)` explicitly allocates a completely new $n \times n$ dense matrix `H` every iteration in the loop, creating memory pressure.
 **Action:** Use an in-place update `H += np.dot(U, V.T)` to reuse the existing allocated space, saving time and memory allocations without affecting algorithmic behavior.
+
 ## 2024-05-24 - Pre-allocate KKT Block Matrices in Iterative Solvers
 **Learning:** In iterative solvers like SQP, replacing convenience functions that allocate memory (like calling a standalone QP solver that constructs a new KKT block matrix every iteration) with inline, pre-allocated buffers provides significant performance benefits. Repeated allocation of $O((n+m)^2)$ matrices creates unnecessary overhead.
 **Action:** When implementing iterative optimization algorithms in `karush`, pre-allocate large block matrices outside the loop, evaluate initial dimensions outside the loop if needed, and update sub-blocks in-place before calling `np.linalg.solve`.
+
 ## 2024-05-24 - Avoid Redundant Function Evaluations in Memory Optimizations
 **Learning:** When trying to optimize memory allocations (like pre-allocating a matrix outside an iteration loop), it's easy to accidentally introduce a severe performance regression if computing the required matrix dimensions forces an extra evaluation of a user-provided function (e.g., a Jacobian `grad_h(x)`). In numerical optimization, function evaluations are typically the most computationally expensive operations, far outweighing the cost of memory allocation.
 **Action:** Do not call user-provided functions (like `grad_h(x)`) outside of a loop just to determine array dimensions. Instead, lazily pre-allocate memory *inside* the loop on the first iteration (`if k == 0:`) using the natively evaluated array dimensions. This perfectly combines memory optimization with strict evaluation economy.
+
 ## 2024-05-24 - Validate Array Shapes Before Memory Allocation
 **Learning:** In optimization problems, a single constraint often causes user-provided functions to return a 1D gradient array (e.g., shape `(n,)`) instead of a 2D matrix (shape `(1, n)`). If array shapes are extracted (like `A.shape[0]`) to calculate dimensions for pre-allocated memory buffers (like a KKT matrix) *before* the input array is properly coerced to 2D (e.g., using `.reshape(1, -1)`), the resulting dimension will incorrectly be `n` instead of `1`, causing fatal linear algebra errors (e.g., singular matrices).
 **Action:** Always ensure array inputs are properly dimensioned and validated (e.g., 2D matrices) *before* using their `shape` attributes to determine the size of pre-allocated buffers.
@@ -99,9 +105,11 @@
 ## 2024-05-21 - Optimize Tight Inner Loop Scalar Function Evaluations
 **Learning:** Unconditionally wrapping scalar results returned from user-provided mathematical functions (e.g. `f(x)`) with `np.asarray(...)` introduces significant Python overhead (on the order of 1us per call). In tight inner loops, such as line search backtracking where `f(x + alpha * p)` is called repeatedly, this overhead dominates execution time for fast-evaluating functions, making the algorithm slow. Converting the result with `float()` is much faster but crashes if the function safely returns a vector.
 **Action:** Replace `np.asarray()` in tight loop function evaluations with a `try: float(f_raw)` block. This creates a "fast path" for scalar evaluations while falling back to `np.asarray` handling for vectors, achieving the speed of `float()` without sacrificing type safety for vector-valued inputs.
+
 ## 2026-11-20 - Unnecessary Deep Copy in Iterative Solver Histories
 **Learning:** In iterative solvers, history lists often track state variables like `x` at each iteration using `history.append(x.copy())`. However, if `x` is updated via a reassignment that natively allocates a new array (e.g. `x_new = x + alpha * p; x = x_new`), calling `.copy()` is completely redundant and causes a >10x slowdown in the tracking loop due to duplicate memory allocation.
 **Action:** Only use `.copy()` when appending variables that were modified strictly in-place (e.g. `x += p`). Remove explicit `.copy()` calls when the state variable has just been reassigned to a newly created array.
+
 ## 2024-05-28 - Fast 3D Array Pre-allocation for Matrix Lists
 **Learning:** In optimization problem setups, generating a list of constraint matrices (e.g., `A_list`) using a Python loop that iteratively calls `np.zeros((n, n))` is extremely slow for large `n` due to sequential Python overhead and repeated memory allocation calls.
 **Action:** Pre-allocate a 3D NumPy array for the entire stack of matrices at once (e.g., `A_stack = np.zeros((m, n, n))`), use advanced indexing or broadcasting to fill the non-zero elements, and then convert it to a list using `list(A_stack)`. This leverages C-level bulk memory allocation and vectorization, yielding >10x speedup for initialization steps.
@@ -113,6 +121,7 @@
 ## 2024-06-11 - Pre-allocate and assign matrices to avoid np.column_stack overhead
 **Learning:** In iterative solver loops, using `np.column_stack` inside the loop causes repeated memory allocation overhead, which becomes a bottleneck. Pre-allocating `np.empty((n, 2))` outside the loop and assigning columns directly `U[:, 0] = ...` provides a measurable speedup.
 **Action:** Pre-allocate memory outside hot loops and assign values in-place rather than relying on NumPy concatenation functions like `np.column_stack` or `np.block`.
+
 ## 2024-06-28 - Optimize Matrix Lists Vectorization with Loop Fill
 **Learning:** In constraint preprocessing algorithms (like symmetric vectorization `svec`), converting a Python list of matrices into a dense 3D stack via `np.array(A_list)` creates a massive, temporary $O(m \times n^2)$ array. This causes a huge memory spike and often crashes with unhandled Out-Of-Memory exceptions before filtering operations (like `A_stack[:, idx_i, idx_j]`) can extract the needed 2D matrix.
 **Action:** Replace `np.array(A_list)` stacking followed by advanced 3D indexing. Instead, pre-allocate the target 2D matrix with `np.empty((m, dim_vec))` and populate it directly inside a fast `for` loop (`A_mat[i, :] = A_list[i][idx_i, idx_j]`). This completely avoids allocating the massive intermediate 3D block, saving substantial peak memory without sacrificing speed.
@@ -124,6 +133,7 @@
 ## 2024-07-02 - In-place search direction updates in Conjugate Gradient
 **Learning:** In iterative solvers like Conjugate Gradient, calculating the new search direction vector with `p_new = -g_new + beta * p` explicitly allocates a new array on every iteration. This redundant memory allocation creates measurable overhead in tight inner loops.
 **Action:** Replace the explicit array allocation with in-place modifications to the existing search direction vector (`p *= beta`, `p -= g_new`). This avoids memory allocation overhead inside the inner loop, providing a significant speedup for large dimensional problems.
+
 ## 2026-06-15 - Avoid np.linalg.norm and np.sqrt in tight inner loops
 **Learning:** Checking termination conditions with `np.linalg.norm(g) < tol` or `np.sqrt(g_norm_sq) < tol` inside tight inner loops is slow due to the overhead of the functions and square root calculation.
 **Action:** Precompute `tol_sq = tol**2` outside the inner loop and evaluate the condition as `np.dot(g, g) < tol_sq` or `g_norm_sq < tol_sq` to eliminate the repeated calculation overhead.
@@ -131,3 +141,7 @@
 ## 2026-06-19 - Avoid redundant array allocation in step calculation
 **Learning:** In optimization loops, calculating the step update vector `step = alpha * p` and then `x_new = x + alpha * p` causes an extra redundant array allocation because `alpha * p` is evaluated twice. It's faster to store the result of `alpha * p` as a `step` variable, and iteratively update it via `step *= rho` if `alpha *= rho` in a line search. This avoids an `O(n)` array allocation on every line search iteration.
 **Action:** When performing a line search with a backtracking parameter `rho`, compute the initial step explicitly `step = alpha * p` and in the line search loop, update `step` in-place (`step *= rho`) rather than evaluating `x + alpha * p` which re-allocates `alpha * p` repeatedly.
+
+## 2026-11-20 - Avoid redundant array evaluation in line search acceptance
+**Learning:** During the backtracking line search loop in unconstrained solvers, `f(x + step)` is repeatedly evaluated. If we don't save the final accepted `x + step` evaluation explicitly, the code is forced to evaluate `x_new = x + step` again after the loop, causing an unnecessary O(n) array allocation per line search acceptance.
+**Action:** Instead of evaluating `f(x + step)` directly inside the `while` loop, store the result in `x_new = x + step` first, then evaluate `f(x_new)`. When the step is accepted, `x_new` is already evaluated and we can simply assign `x = x_new` without an additional array evaluation.

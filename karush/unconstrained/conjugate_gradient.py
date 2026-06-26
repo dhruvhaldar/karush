@@ -61,8 +61,12 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         # alpha * p. This avoids redundant O(n) array allocations per iteration.
         step = alpha * p
 
+        # Performance optimization: Avoid redundant array evaluation in line search acceptance
+        # By assigning `x_new = x + step` first and passing it to `f`, we avoid evaluating `x + step`
+        # again after the loop, saving an O(n) array allocation per line search acceptance.
         while True:
-            f_new_raw = f(x + step)
+            x_new = x + step
+            f_new_raw = f(x_new)
             try:
                 f_new_val = float(f_new_raw)
                 is_scalar = True
@@ -82,15 +86,14 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
             alpha *= rho
             step *= rho
             if alpha < 1e-10:
-                f_new_raw = f(x + step)
+                x_new = x + step
+                f_new_raw = f(x_new)
                 try:
                     f_new_val = float(f_new_raw)
                 except (TypeError, ValueError):
                     f_new = np.asarray(f_new_raw, dtype=float)
                     f_new_val = f_new.item() if f_new.size == 1 else f_new
                 break # Avoid infinite loop
-            
-        x_new = x + step
         fx_val = f_new_val
         g_new = np.asarray(grad_f(x_new), dtype=float)
         if g_new.ndim != 1:
