@@ -4,6 +4,10 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     Nonlinear Conjugate Gradient method (Fletcher-Reeves).
     """
+    # Security Enhancement: Bound dimensions before allocating arrays to prevent OOM DoS
+    if len(x0) > 10000:
+        raise ValueError("System dimensions exceed safe limit for memory allocation.")
+
     x = np.array(x0, dtype=float)
 
     # Security Enhancement: Validate input dimensions to prevent unhandled TypeError/ValueError DoS.

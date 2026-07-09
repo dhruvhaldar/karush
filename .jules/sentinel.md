@@ -184,3 +184,8 @@
 **Vulnerability:** Similar to lists of matrices, passing a massive 1D list as the initial point to various solvers (like `X0`, `x0`, `W`, etc.) would trigger unhandled OOM errors when `np.asarray()` tried to convert the massive list into a dense float array, before length-based bounds checking occurred.
 **Learning:** Checking dimensions to prevent OOM must be done strictly prior to any intermediate memory allocation or array conversions in the function, specifically before `np.asarray()`.
 **Prevention:** Placed the `len(x0) > 10000` bounds check (and similar limits) explicitly before any `np.array` or `np.asarray` conversions on the same object.
+
+## 2025-10-24 - DoS via Memory Exhaustion (OOM) from Late Dimension Validation 3
+**Vulnerability:** Similar to lists of matrices, passing a massive 1D list as the initial point to `conjugate_gradient` would trigger unhandled OOM errors when `np.asarray()` or `np.array()` tried to convert the massive list into a dense float array, before length-based bounds checking occurred.
+**Learning:** Checking dimensions to prevent OOM must be done strictly prior to any intermediate memory allocation or array conversions in the function, specifically before `np.array()` or `np.asarray()`.
+**Prevention:** Placed the `len(x0) > 10000` bounds check explicitly before any `np.array` or `np.asarray` conversions on the same object.
