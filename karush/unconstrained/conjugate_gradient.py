@@ -60,7 +60,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         rho = 0.5
         c = 1e-4
         
-        d_new = np.dot(g, p)
+        d_new = np.dot(g, p) if k == 0 else d_old
 
         # Performance optimization: Use Nocedal & Wright's recommended initial guess for alpha
         # alpha_0 = alpha_{k-1} * (grad_{k-1}^T p_{k-1}) / (grad_k^T p_k)
@@ -134,8 +134,14 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         
         # FIX: Reset to steepest descent if not a descent direction
         # Security Enhancement: Prevent division-by-zero or unhandled math exceptions if dot product is evaluated on incorrectly shaped arrays.
-        if np.dot(p_new, g_new) >= 0:
+        # Performance optimization: Cache np.dot(p_new, g_new) and reuse it
+        # as d_new in the next iteration to eliminate a redundant O(n) dot product.
+        p_dot_g_new = np.dot(p_new, g_new)
+        if p_dot_g_new >= 0:
             p_new = -g_new
+            d_old = -g_new_norm_sq
+        else:
+            d_old = p_dot_g_new
             
         p = p_new
         

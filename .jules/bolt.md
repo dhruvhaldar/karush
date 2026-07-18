@@ -145,3 +145,6 @@
 ## 2026-11-20 - Avoid redundant array evaluation in line search acceptance
 **Learning:** During the backtracking line search loop in unconstrained solvers, `f(x + step)` is repeatedly evaluated. If we don't save the final accepted `x + step` evaluation explicitly, the code is forced to evaluate `x_new = x + step` again after the loop, causing an unnecessary O(n) array allocation per line search acceptance.
 **Action:** Instead of evaluating `f(x + step)` directly inside the `while` loop, store the result in `x_new = x + step` first, then evaluate `f(x_new)`. When the step is accepted, `x_new` is already evaluated and we can simply assign `x = x_new` without an additional array evaluation.
+## 2024-05-24 - Cache directional derivative in iterative methods
+**Learning:** In the nonlinear conjugate gradient method, evaluating the directional derivative `np.dot(g, p)` at the start of each iteration duplicates the `np.dot(p_new, g_new)` check performed at the end of the previous iteration to verify the descent condition. This causes a redundant O(n) array operation per iteration.
+**Action:** When implementing iterative loops that require the directional derivative for both line search initiation and descent verification, compute the dot product once at the end of the iteration, cache it, and reuse it at the start of the next iteration.
