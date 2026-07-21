@@ -97,7 +97,6 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # Residuals
         r_L = G @ x + c - A.T @ y - z
         r_A = A @ x - b
-        r_C = x * z # complementarity
         
         mu = np.dot(x, z) / n
         sigma = 0.5 # Centering parameter
@@ -117,12 +116,17 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # diagonal elements directly in O(n) and use vectorized operations.
         # This replaces `X_inv = np.diag(1/x)`, `Z = np.diag(z)`, `M = G + X_inv @ Z`
         # Further optimized by updating KKT diagonal in-place rather than full block copy.
-        KKT[diag_indices] = diag_G + z / x
+        inv_x = 1.0 / x
+        z_div_x = z * inv_x
+        KKT[diag_indices] = diag_G + z_div_x
         
         # Avoid `X_inv @ vector` which is O(n^2) by using element-wise division O(n)
         # Performance optimization: Replace `sigma * mu * np.ones(n)` with scalar broadcasting `sigma * mu`.
         # This eliminates unnecessary O(n) memory allocation and initialization per iteration.
-        rhs_1 = -r_L + ( -r_C + sigma * mu ) / x
+        # Performance optimization: We substitute r_C = x * z mathematically to avoid evaluating the redundant array r_C.
+        # (-r_C + sigma * mu) / x = -(x * z) / x + sigma * mu / x = -z + sigma * mu / x.
+        sigma_mu_div_x = (sigma * mu) * inv_x
+        rhs_1 = -r_L - z + sigma_mu_div_x
         rhs_2 = -r_A
         
         # System:
@@ -136,7 +140,7 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
             
         dx = sol[:n]
         dy = sol[n:]
-        dz = ( -r_C + sigma * mu - z * dx ) / x
+        dz = -z + sigma_mu_div_x - z_div_x * dx
         
         # Line search to keep x, z > 0
         alpha_p = 1.0
