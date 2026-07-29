@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     """
     Primal-Dual Interior Point Method for Convex QP in standard form:

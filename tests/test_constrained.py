@@ -1,13 +1,15 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from karush.constrained.barrier import barrier_method
 from karush.constrained.qp import solve_eq_qp
 from karush.constrained.sqp import sqp_equality_constrained
-from karush.constrained.barrier import barrier_method
+
 
 class TestConstrained(unittest.TestCase):
     def test_qp(self):
@@ -22,7 +24,7 @@ class TestConstrained(unittest.TestCase):
         A = np.array([[1.0, 1.0]])
         b = np.array([2.0])
         
-        x, lam = solve_eq_qp(G, c, A, b)
+        x, _lam = solve_eq_qp(G, c, A, b)
         np.testing.assert_allclose(x, [1.0, 1.0], atol=1e-5)
 
     def test_qp_list_input(self):
@@ -31,7 +33,7 @@ class TestConstrained(unittest.TestCase):
         A = [[1.0, 1.0]]
         b = [2.0]
 
-        x, lam = solve_eq_qp(G, c, A, b)
+        x, _lam = solve_eq_qp(G, c, A, b)
         np.testing.assert_allclose(x, [1.0, 1.0], atol=1e-5)
         
     def test_sqp(self):

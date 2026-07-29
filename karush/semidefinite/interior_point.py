@@ -1,5 +1,7 @@
-import numpy as np
 import functools
+
+import numpy as np
+
 
 # Cache for svec/smat indices to avoid redundant array allocations
 @functools.lru_cache(maxsize=128)

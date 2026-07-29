@@ -1,11 +1,13 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from karush.convex.relaxations import max_cut_sdp_relaxation
+
 
 class TestMaxCutOOMDos(unittest.TestCase):
     def test_max_cut_oom(self):

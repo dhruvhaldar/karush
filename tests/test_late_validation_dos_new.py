@@ -1,10 +1,12 @@
 import pytest
-from karush.semidefinite.interior_point import solve_sdp_barrier
-from karush.convex.relaxations import max_cut_sdp_relaxation
+
 from karush.constrained.barrier import barrier_method
+from karush.constrained.sqp import sqp_equality_constrained
+from karush.convex.relaxations import max_cut_sdp_relaxation
+from karush.semidefinite.interior_point import solve_sdp_barrier
 from karush.unconstrained.newton import newton_method
 from karush.unconstrained.quasi_newton import bfgs_method
-from karush.constrained.sqp import sqp_equality_constrained
+
 
 def test_late_validation_interior_point():
     class MassiveList(list):

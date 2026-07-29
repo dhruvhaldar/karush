@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from karush.convex.relaxations import max_cut_sdp_relaxation
+
 
 def test_max_cut_oom():
     # If n=1000, 1000^3 = 1 billion float64 = 8GB.

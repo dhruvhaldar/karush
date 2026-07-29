@@ -1,12 +1,14 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from karush.semidefinite.interior_point import svec, smat
-from karush.convex.relaxations import randomized_rounding, max_cut_sdp_relaxation
+from karush.convex.relaxations import max_cut_sdp_relaxation, randomized_rounding
+from karush.semidefinite.interior_point import smat, svec
+
 
 class TestShapeDoS(unittest.TestCase):
     def test_svec_geometric_shape(self):

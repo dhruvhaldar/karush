@@ -1,5 +1,7 @@
 import pytest
+
 from karush.unconstrained.conjugate_gradient import conjugate_gradient
+
 
 def test_cg_late_validation_dos():
     class MassiveList(list):

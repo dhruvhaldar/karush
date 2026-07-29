@@ -1,13 +1,15 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from karush.unconstrained.conjugate_gradient import conjugate_gradient
 from karush.unconstrained.newton import newton_method
 from karush.unconstrained.quasi_newton import bfgs_method
-from karush.unconstrained.conjugate_gradient import conjugate_gradient
+
 
 class TestUnconstrained(unittest.TestCase):
     def setUp(self):

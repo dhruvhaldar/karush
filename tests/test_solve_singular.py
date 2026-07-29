@@ -1,15 +1,17 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from karush.constrained.sqp import sqp_equality_constrained
-from karush.constrained.primal_dual import primal_dual_qp
 from karush.constrained.barrier import barrier_method
+from karush.constrained.primal_dual import primal_dual_qp
+from karush.constrained.sqp import sqp_equality_constrained
 from karush.semidefinite.interior_point import solve_sdp_barrier
 from karush.unconstrained.newton import newton_method
+
 
 class TestSolveSingular(unittest.TestCase):
     def test_sqp_singular(self):

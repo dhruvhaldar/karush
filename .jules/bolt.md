@@ -5,3 +5,7 @@
 ## 2024-07-06 - Optimize repeated array division with inversion and multiplication
 **Learning:** In numerical solvers, dividing multiple large arrays by the same vector (e.g., computing `z / x` and `c / x`) incurs the high performance overhead of repeated floating-point divisions.
 **Action:** When a loop requires multiple divisions by the same array, precompute the reciprocal (`inv_x = 1.0 / x`) once and replace subsequent divisions with multiplications (`z * inv_x`). Element-wise array multiplication is significantly faster than division on modern CPUs.
+
+## 2026-07-29 - Avoid explicit step difference calculation in BFGS
+**Learning:** In the BFGS optimization loop, calculating the step difference via `s = x_new - x` allocates a new $O(n)$ array and performs a subtraction on every iteration, despite `x_new` being derived immediately beforehand as `x_new = x + step`.
+**Action:** Replace `s = x_new - x` with the mathematically equivalent `s = step` to completely bypass the redundant array allocation and subtraction, saving compute overhead in tight inner loops.

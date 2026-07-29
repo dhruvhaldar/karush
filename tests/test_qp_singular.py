@@ -1,11 +1,13 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from karush.constrained.qp import solve_eq_qp
+
 
 class TestQPSingular(unittest.TestCase):
     def test_qp_singular_matrix(self):

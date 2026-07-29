@@ -1,11 +1,13 @@
-import unittest
-import numpy as np
-import sys
 import os
+import sys
+import unittest
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from karush.unconstrained.newton import newton_method
+
 
 class TestSecurity(unittest.TestCase):
     def test_newton_strict_shape_validation(self):

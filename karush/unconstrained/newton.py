@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
     """
     Newton's method for unconstrained optimization.

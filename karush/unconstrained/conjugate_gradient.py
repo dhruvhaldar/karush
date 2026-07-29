@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     Nonlinear Conjugate Gradient method (Fletcher-Reeves).
