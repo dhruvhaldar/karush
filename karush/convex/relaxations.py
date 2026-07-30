@@ -1,6 +1,9 @@
-import numpy as np
 import secrets
+
+import numpy as np
+
 from ..semidefinite.interior_point import solve_sdp_barrier
+
 
 def max_cut_sdp_relaxation(W, tol=1e-4, max_iter=20):
     """

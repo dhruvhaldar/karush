@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_iter=20):
     """
     Simple SQP for equality constrained optimization.

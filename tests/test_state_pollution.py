@@ -1,5 +1,7 @@
 import numpy as np
+
 from karush.constrained.barrier import barrier_method
+
 
 def test_barrier_state_pollution():
     cached_hess = np.eye(2)

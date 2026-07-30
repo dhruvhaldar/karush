@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from karush.constrained.primal_dual import primal_dual_qp
+
 
 def test_primal_dual_strictly_positive_dos():
     G = np.eye(2)

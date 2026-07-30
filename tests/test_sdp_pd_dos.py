@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from karush.semidefinite.interior_point import solve_sdp_barrier
+
 
 def test_sdp_strictly_pd_dos():
     C = np.array([[1.0, 0.0], [0.0, 1.0]])

@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from karush.semidefinite.interior_point import solve_sdp_barrier
+
 
 def test_sdp_oom():
     n = 200 # dim_vec = 20100

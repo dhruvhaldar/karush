@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def solve_eq_qp(G, c, A, b):
     """
     Solves the equality constrained quadratic program:

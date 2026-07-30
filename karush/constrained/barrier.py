@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6, max_iter=20):
     """
     Log-barrier method for inequality constrained optimization.

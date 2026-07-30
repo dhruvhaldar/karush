@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     """
     BFGS Quasi-Newton method.
@@ -113,7 +114,11 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
         if g_new.shape[0] != n:
             raise ValueError("Gradient dimension must match x.")
         
-        s = x_new - x
+        # Performance optimization: `x_new` was derived via `x_new = x + step`.
+        # Instead of explicitly allocating a new array `s = x_new - x`, we can
+        # directly reuse `step` since it is mathematically equivalent and avoids
+        # a redundant O(n) array allocation and subtraction per iteration.
+        s = step
         y = g_new - g
         
         # BFGS update (optimized O(n^2) implementation instead of O(n^3))
