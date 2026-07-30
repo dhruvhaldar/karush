@@ -238,8 +238,14 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # Line search
             alpha = 1.0
             step_accepted = False
+
+            # Performance optimization: Compute step = alpha * dX once and scale
+            # it in place (step *= 0.5) during backtracking instead of re-evaluating
+            # alpha * dX. This avoids redundant O(n^2) array allocations per iteration.
+            step = alpha * dX
+
             for ls in range(10):
-                X_new = X + alpha * dX
+                X_new = X + step
                 # Check PD
                 try:
                     np.linalg.cholesky(X_new)
@@ -249,6 +255,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
                     break
                 except np.linalg.LinAlgError:
                     alpha *= 0.5
+                    step *= 0.5
             
             if not step_accepted:
                 break
