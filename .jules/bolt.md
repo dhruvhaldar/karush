@@ -9,3 +9,7 @@
 ## 2026-07-29 - Avoid explicit step difference calculation in BFGS
 **Learning:** In the BFGS optimization loop, calculating the step difference via `s = x_new - x` allocates a new $O(n)$ array and performs a subtraction on every iteration, despite `x_new` being derived immediately beforehand as `x_new = x + step`.
 **Action:** Replace `s = x_new - x` with the mathematically equivalent `s = step` to completely bypass the redundant array allocation and subtraction, saving compute overhead in tight inner loops.
+
+## 2024-08-01 - Avoid np.zeros when most blocks are immediately overwritten
+**Learning:** Using `np.zeros` to pre-allocate large block matrices (like KKT systems) incurs a performance penalty if most of the matrix is immediately overwritten with dense sub-blocks. The OS must physically zero out the memory pages before they are written to.
+**Action:** Use `np.empty` to allocate the memory without zero-initialization, write the dense sub-blocks directly, and explicitly zero out only the required empty sub-blocks (e.g., `KKT[n:, n:] = 0.0`).
