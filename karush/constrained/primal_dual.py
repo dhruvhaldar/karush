@@ -82,10 +82,13 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
-    KKT = np.zeros((n + m, n + m))
+    # We use np.empty instead of np.zeros to avoid OS-level zero-initialization overhead,
+    # and manually zero out only the required empty sub-block.
+    KKT = np.empty((n + m, n + m))
     KKT[:n, :n] = G
     KKT[:n, n:] = -A.T
     KKT[n:, :n] = A
+    KKT[n:, n:] = 0.0
     rhs = np.empty(n + m)
 
     diag_indices = np.diag_indices(n)

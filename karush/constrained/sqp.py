@@ -79,7 +79,10 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
             m = A.shape[0]
             if n + m > 10000:
                 raise ValueError("System dimensions exceed safe limit for memory allocation.")
-            KKT_mat = np.zeros((n + m, n + m))
+            # Performance optimization: Use np.empty instead of np.zeros to avoid OS-level
+            # zero-initialization overhead, and manually zero out only the empty sub-block.
+            KKT_mat = np.empty((n + m, n + m))
+            KKT_mat[n:, n:] = 0.0
             rhs = np.empty(n + m)
 
         # Performance optimization: Replace `solve_eq_qp` which allocates a new block matrix
