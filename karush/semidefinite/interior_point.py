@@ -175,9 +175,12 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
 
     # Performance optimization: Replace np.block and np.concatenate with pre-allocation
     # outside the loop. In the loop, only update the blocks that change.
-    KKT_lhs = np.zeros((dim_vec + m, dim_vec + m))
+    # We use np.empty instead of np.zeros to avoid OS-level zero-initialization overhead,
+    # and manually zero out only the required empty sub-block.
+    KKT_lhs = np.empty((dim_vec + m, dim_vec + m))
     KKT_lhs[:dim_vec, dim_vec:] = A_mat.T
     KKT_lhs[dim_vec:, :dim_vec] = A_mat
+    KKT_lhs[dim_vec:, dim_vec:] = 0.0
     rhs = np.empty(dim_vec + m)
 
     # Performance optimization: svec is a linear operator. We precompute svec(X)
