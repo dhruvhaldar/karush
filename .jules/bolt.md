@@ -13,3 +13,11 @@
 ## 2024-08-01 - Avoid np.zeros when most blocks are immediately overwritten
 **Learning:** Using `np.zeros` to pre-allocate large block matrices (like KKT systems) incurs a performance penalty if most of the matrix is immediately overwritten with dense sub-blocks. The OS must physically zero out the memory pages before they are written to.
 **Action:** Use `np.empty` to allocate the memory without zero-initialization, write the dense sub-blocks directly, and explicitly zero out only the required empty sub-blocks (e.g., `KKT[n:, n:] = 0.0`).
+
+## 2024-08-09 - Avoid redundant array calculations via sequential in-place modifications
+**Learning:** In NumPy, advanced indexing (e.g., `A[:, idx]`) creates a new array copy. When performing element-wise multiplications on such slices, avoiding combining operations into a single line (e.g., `M = A[:, idx_a] * B[:, idx_b]`) which creates massive intermediate temporary arrays. Instead, use sequential in-place modifications (e.g., `M = A[:, idx_a]; M *= B[:, idx_b]`) to minimize memory allocations and improve inner loop speed.
+**Action:** Replace single-line advanced indexing multiplications with sequential in-place modifications.
+
+## 2024-08-09 - Precompute outer product in iterative loops
+**Learning:** In iterative mathematical loops, avoid redundant outer product constructions (e.g., `M *= W[:, None] * W[None, :]`) by precomputing the outer matrix (`W_W = W[:, None] * W[None, :]`) outside the loop.
+**Action:** Precompute the outer matrix outside the loop and use a single in-place multiplication inside the loop.
