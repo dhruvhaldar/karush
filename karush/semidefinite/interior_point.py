@@ -166,6 +166,7 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
     idx_a, idx_b = np.triu_indices(n)
     W_svec = np.full(len(idx_a), np.sqrt(2))
     W_svec[idx_a == idx_b] = 1.0
+    W_W = W_svec[:, None] * W_svec[None, :]
 
     # Precompute vectorized C matrix
     # Performance optimization: svec is a linear operator. We precompute svec(C)
@@ -215,13 +216,15 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # Performance optimization: Avoid allocating Vac, Vbd, Vad, Vbc matrices.
             # Perform element-wise multiplication directly using advanced indexing
             # to reduce memory allocation overhead and improve speed.
-            M = X_inv_a[:, idx_a] * X_inv_b[:, idx_b]
+            M = X_inv_a[:, idx_a] # Advanced indexing returns a copy, safe to modify in place
+            M *= X_inv_b[:, idx_b]
+
             M += X_inv_a[:, idx_b] * X_inv_b[:, idx_a]
+
             # Adjust scaling by 0.5 because D has symmetric off-diagonal elements divided by sqrt(2)
             # The exact derivation yields W_svec factors and a 0.5 coefficient.
             M *= (mu * 0.5)
-            M *= W_svec[:, None]
-            M *= W_svec[None, :]
+            M *= W_W
             H_mat = M
             
             # KKT System
