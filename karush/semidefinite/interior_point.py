@@ -219,7 +219,10 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             M = X_inv_a[:, idx_a] # Advanced indexing returns a copy, safe to modify in place
             M *= X_inv_b[:, idx_b]
 
-            M += X_inv_a[:, idx_b] * X_inv_b[:, idx_a]
+            # Avoid creating a massive intermediate array for the second term
+            tmp = X_inv_a[:, idx_b]
+            tmp *= X_inv_b[:, idx_a]
+            M += tmp
 
             # Adjust scaling by 0.5 because D has symmetric off-diagonal elements divided by sqrt(2)
             # The exact derivation yields W_svec factors and a 0.5 coefficient.
