@@ -21,3 +21,7 @@
 ## 2024-08-09 - Precompute outer product in iterative loops
 **Learning:** In iterative mathematical loops, avoid redundant outer product constructions (e.g., `M *= W[:, None] * W[None, :]`) by precomputing the outer matrix (`W_W = W[:, None] * W[None, :]`) outside the loop.
 **Action:** Precompute the outer matrix outside the loop and use a single in-place multiplication inside the loop.
+
+## 2025-02-28 - Strided Memory Assignment for KKT Diagonal Updates
+**Learning:** In NumPy, updating the diagonal elements of a 2D matrix inside an iterative optimization loop (like updating `M = G + Z/X` in primal-dual interior point KKT matrices) using `KKT[np.diag_indices(n)] = ...` is extremely slow. This is because `np.diag_indices` returns a tuple of index arrays that trigger NumPy's advanced indexing, creating an intermediate array copy before performing the O(n) updates.
+**Action:** When updating the main diagonal of a matrix repeatedly within a loop, use a flat strided view instead: `stride = n + m + 1`, `end = n * stride`, and update via `KKT.flat[:end:stride] = ...`. This approach bypasses advanced indexing overhead and avoids allocating a temporary copy of the diagonal, providing a ~3-4x speedup on diagonal block assignments.

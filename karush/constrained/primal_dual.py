@@ -91,8 +91,10 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
     KKT[n:, n:] = 0.0
     rhs = np.empty(n + m)
 
-    diag_indices = np.diag_indices(n)
     diag_G = np.diag(G)
+    stride = n + m + 1
+    end = n * stride
+    inv_n = 1.0 / n
 
     # Performance optimization: Precompute tol**2 to avoid np.linalg.norm in inner loop.
     tol_sq = tol**2
@@ -102,7 +104,7 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         r_L = G @ x + c - A.T @ y - z
         r_A = A @ x - b
         
-        mu = np.dot(x, z) / n
+        mu = np.dot(x, z) * inv_n
         sigma = 0.5 # Centering parameter
         
         # Solve Newton system
@@ -119,10 +121,11 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # and performing O(n^3) matrix multiplication. Instead, compute the
         # diagonal elements directly in O(n) and use vectorized operations.
         # This replaces `X_inv = np.diag(1/x)`, `Z = np.diag(z)`, `M = G + X_inv @ Z`
-        # Further optimized by updating KKT diagonal in-place rather than full block copy.
+        # Further optimized by updating KKT diagonal in-place using flat strided assignment
+        # rather than full block copy or advanced indexing.
         inv_x = 1.0 / x
         z_div_x = z * inv_x
-        KKT[diag_indices] = diag_G + z_div_x
+        KKT.flat[:end:stride] = diag_G + z_div_x
         
         # Avoid `X_inv @ vector` which is O(n^2) by using element-wise division O(n)
         # Performance optimization: Replace `sigma * mu * np.ones(n)` with scalar broadcasting `sigma * mu`.
