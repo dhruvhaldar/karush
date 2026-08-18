@@ -233,11 +233,13 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # KKT System
             # Performance optimization: `b` is already a NumPy array. Avoid `np.array(b)`
             # inside the loop which creates an unnecessary copy every iteration.
-            residuals = A_mat @ svec_X - b
-            
             KKT_lhs[:dim_vec, :dim_vec] = H_mat
-            rhs[:dim_vec] = -grad_vec
-            rhs[dim_vec:] = -residuals
+
+            # Performance optimization: Negate vectors directly into the pre-allocated `rhs` array
+            # to avoid creating intermediate negated array copies. Also combine the residual
+            # calculation to avoid allocating an intermediate `residuals` array.
+            np.negative(grad_vec, out=rhs[:dim_vec])
+            rhs[dim_vec:] = b - A_mat @ svec_X
             
             sol = np.linalg.solve(KKT_lhs, rhs)
                 
@@ -253,8 +255,11 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # alpha * dX. This avoids redundant O(n^2) array allocations per iteration.
             step = alpha * dX
 
+            # Pre-allocate X_new outside the backtracking loop to avoid O(n^2) array allocations per iteration
+            X_new = np.empty_like(X)
+
             for ls in range(10):
-                X_new = X + step
+                np.add(X, step, out=X_new)
                 # Check PD
                 try:
                     np.linalg.cholesky(X_new)
