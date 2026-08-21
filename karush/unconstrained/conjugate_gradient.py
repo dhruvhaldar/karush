@@ -50,7 +50,7 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
     # Performance optimization: Precompute tol**2 to avoid np.sqrt in inner loop.
     tol_sq = tol**2
 
-    alpha = 1.0
+    alpha_init = 1.0
     d_new = np.dot(g, p)
     d_old = d_new
 
@@ -66,9 +66,10 @@ def conjugate_gradient(f, grad_f, x0, tol=1e-6, max_iter=100):
         # alpha_0 = alpha_{k-1} * (grad_{k-1}^T p_{k-1}) / (grad_k^T p_k)
         # This significantly reduces the number of inner loop line search iterations.
         if k > 0 and d_new < 0:
-            alpha = alpha * d_old / d_new
+            alpha = alpha_init * d_old / d_new
         else:
             alpha = 1.0
+        alpha_init = alpha
 
         expected_decrease = c * d_new
 
