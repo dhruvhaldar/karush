@@ -90,8 +90,9 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
         # Performance optimization: Avoid redundant array evaluation in line search acceptance
         # By assigning `x_new = x + step` first and passing it to `f`, we avoid evaluating `x + step`
         # again after the loop, saving an O(n) array allocation per line search acceptance.
+        x_new = np.empty_like(x)
         while True:
-            x_new = x + step
+            np.add(x, step, out=x_new)
             f_new_raw = f(x_new)
             try:
                 f_new_val = float(f_new_raw)
@@ -112,7 +113,7 @@ def newton_method(f, grad_f, hess_f, x0, tol=1e-6, max_iter=100):
             alpha *= rho
             step *= rho
             if alpha < 1e-10: # Safety break
-                x_new = x + step
+                np.add(x, step, out=x_new)
                 f_new_raw = f(x_new)
                 try:
                     f_new_val = float(f_new_raw)

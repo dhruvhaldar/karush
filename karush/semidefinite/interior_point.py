@@ -253,8 +253,9 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # alpha * dX. This avoids redundant O(n^2) array allocations per iteration.
             step = alpha * dX
 
+            X_new = np.empty_like(X)
             for ls in range(10):
-                X_new = X + step
+                np.add(X, step, out=X_new)
                 # Check PD
                 try:
                     np.linalg.cholesky(X_new)
