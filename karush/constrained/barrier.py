@@ -117,8 +117,9 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # it in place (step *= 0.5) during backtracking instead of re-evaluating
             # alpha * p. This avoids redundant O(n) array allocations per iteration.
             step = alpha * p
+            x_new = np.empty_like(x)
             while True:
-                x_new = x + step
+                np.add(x, step, out=x_new)
                 g_new_val = np.asarray(g_ineq(x_new), dtype=float)
                 if g_new_val.ndim != 1:
                     raise ValueError("Constraint function must return a 1D vector.")

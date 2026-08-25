@@ -25,3 +25,7 @@
 ## 2025-02-28 - Strided Memory Assignment for KKT Diagonal Updates
 **Learning:** In NumPy, updating the diagonal elements of a 2D matrix inside an iterative optimization loop (like updating `M = G + Z/X` in primal-dual interior point KKT matrices) using `KKT[np.diag_indices(n)] = ...` is extremely slow. This is because `np.diag_indices` returns a tuple of index arrays that trigger NumPy's advanced indexing, creating an intermediate array copy before performing the O(n) updates.
 **Action:** When updating the main diagonal of a matrix repeatedly within a loop, use a flat strided view instead: `stride = n + m + 1`, `end = n * stride`, and update via `KKT.flat[:end:stride] = ...`. This approach bypasses advanced indexing overhead and avoids allocating a temporary copy of the diagonal, providing a ~3-4x speedup on diagonal block assignments.
+
+## 2025-02-28 - In-place array updates with out parameter
+**Learning:** In NumPy, iterative additions like `x_new = x + step` inside tight loops (like line searches) allocate a new array on every iteration.
+**Action:** Pre-allocate the result array outside the loop (`x_new = np.empty_like(x)`) and use `np.add(x, step, out=x_new)` inside the loop to avoid redundant memory allocations and improve speed.
