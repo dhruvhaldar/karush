@@ -205,7 +205,11 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # Gradient of barrier objective: svec(C - mu * X^-1)
             # Performance optimization: Use linearity of svec to evaluate the gradient
             # without allocating the dense O(n^2) matrix `Grad = C - mu * X_inv`.
-            grad_vec = svec_C - mu * svec(X_inv)
+            # Further optimized by performing the operations in-place to avoid
+            # redundant O(n^2) vector allocations per inner iteration.
+            grad_vec = svec(X_inv)
+            grad_vec *= -mu
+            grad_vec += svec_C
             
             # Hessian of barrier objective: H(D) = mu * X^-1 @ D @ X^-1
             # Performance optimization: Replace the O(n^5) loop with a true O(n^4)
@@ -233,11 +237,16 @@ def solve_sdp_barrier(C, A_list, b, X0, initial_mu=1.0, tol=1e-6, max_iter=20):
             # KKT System
             # Performance optimization: `b` is already a NumPy array. Avoid `np.array(b)`
             # inside the loop which creates an unnecessary copy every iteration.
-            residuals = A_mat @ svec_X - b
+            # Further optimized by performing the subtraction in-place.
+            residuals = A_mat @ svec_X
+            residuals -= b
             
             KKT_lhs[:dim_vec, :dim_vec] = H_mat
-            rhs[:dim_vec] = -grad_vec
-            rhs[dim_vec:] = -residuals
+            # Performance optimization: Use np.negative with the `out=` parameter
+            # to write directly into the pre-allocated rhs array, avoiding redundant
+            # O(n^2) intermediate array allocations per iteration.
+            np.negative(grad_vec, out=rhs[:dim_vec])
+            np.negative(residuals, out=rhs[dim_vec:])
             
             sol = np.linalg.solve(KKT_lhs, rhs)
                 
