@@ -91,8 +91,11 @@ def sqp_equality_constrained(f, grad_f, hess_f, h, grad_h, x0, tol=1e-6, max_ite
         KKT_mat[:n, n:] = A.T
         KKT_mat[n:, :n] = A
 
-        rhs[:n] = -g
-        rhs[n:] = -c_val
+        # Performance optimization: Use np.negative with the `out=` parameter
+        # to write directly into the pre-allocated rhs array. This avoids
+        # redundant O(n) intermediate array allocations per iteration.
+        np.negative(g, out=rhs[:n])
+        np.negative(c_val, out=rhs[n:])
         
         sol = np.linalg.solve(KKT_mat, rhs)
         
