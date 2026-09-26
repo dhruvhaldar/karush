@@ -88,7 +88,12 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
                 raise ValueError("Gradient must be a 1D vector.")
             if grad_f_val.shape[0] != x.shape[0]:
                 raise ValueError("Gradient dimension must match x.")
-            grad_phi = grad_f_val + (-mu/g_val) @ grad_g_val
+
+            # Performance optimization: Replace multiple array divisions with a single
+            # scalar-array inversion and element-wise multiplications for significant speedup.
+            inv_g = 1.0 / g_val
+            mu_inv_g = mu * inv_g
+            grad_phi = grad_f_val - mu_inv_g @ grad_g_val
             
             if np.dot(grad_phi, grad_phi) < tol_sq:
                 break
@@ -106,7 +111,7 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
             # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
             # We avoid creating a dense O(m^2) diagonal matrix by broadcasting weights.
-            weights = mu / (g_val**2)
+            weights = mu_inv_g * inv_g
             hess_phi += (grad_g_val.T * weights) @ grad_g_val
             
             p = np.linalg.solve(hess_phi, -grad_phi)
