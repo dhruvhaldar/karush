@@ -101,18 +101,25 @@ def barrier_method(f, grad_f, hess_f, g_ineq, grad_g_ineq, x0, mu0=1.0, tol=1e-6
             # Hessian of barrier
             # hess phi = hess f + sum( 1/g_i^2 * grad g_i * grad g_i^T ) + sum( -1/g_i * hess g_i )
             # Simplified: ignore hess g_i term (Gauss-Newton like approx)
-            # Security Enhancement: Explicitly copy the user-provided array before in-place updates to prevent state pollution
-            hess_phi = np.asarray(hess_f(x), dtype=float).copy()
-            if hess_phi.ndim != 2:
+            base_hess = np.asarray(hess_f(x), dtype=float)
+            if base_hess.ndim != 2:
                 raise ValueError("Hessian must be a 2D matrix.")
-            if hess_phi.shape[0] != x.shape[0] or hess_phi.shape[1] != x.shape[0]:
+            if base_hess.shape[0] != x.shape[0] or base_hess.shape[1] != x.shape[0]:
                 raise ValueError("Hessian must be a square matrix matching x dimensions.")
 
             # Performance optimization: Replace O(m) loop of O(n^2) np.outer calls
             # with a single vectorized matrix-matrix multiplication (BLAS Level 3).
             # We avoid creating a dense O(m^2) diagonal matrix by broadcasting weights.
             weights = mu_inv_g * inv_g
-            hess_phi += (grad_g_val.T * weights) @ grad_g_val
+
+            # Security Enhancement: Explicitly allocate a new array to prevent state pollution of user-provided arrays.
+            # Performance optimization: Pre-allocate an empty array and compute the matrix
+            # multiplication in-place using the `out=` parameter. This avoids a temporary O(n^2)
+            # array allocation for the result of the multiplication. Then add the remaining terms in-place.
+            # Expected impact: Eliminates one O(n^2) intermediate array allocation per inner iteration.
+            hess_phi = np.empty_like(base_hess)
+            np.dot(grad_g_val.T * weights, grad_g_val, out=hess_phi)
+            hess_phi += base_hess
             
             p = np.linalg.solve(hess_phi, -grad_phi)
                 
