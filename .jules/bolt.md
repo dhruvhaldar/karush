@@ -29,3 +29,7 @@
 ## 2025-02-28 - In-place array updates with out parameter
 **Learning:** In NumPy, iterative additions like `x_new = x + step` inside tight loops (like line searches) allocate a new array on every iteration.
 **Action:** Pre-allocate the result array outside the loop (`x_new = np.empty_like(x)`) and use `np.add(x, step, out=x_new)` inside the loop to avoid redundant memory allocations and improve speed.
+
+## 2025-03-02 - Avoid intermediate array allocations in matrix operations
+**Learning:** Evaluating expressions that combine matrix multiplication and additions (e.g., `hess_phi += A @ B`) creates temporary arrays for intermediate results (e.g., `A @ B`).
+**Action:** Pre-allocate an empty array for the result and use the `out=` parameter with `np.dot` to perform the matrix multiplication in-place. Then perform subsequent additions in-place (e.g., `np.dot(A, B, out=hess_phi); hess_phi += base`).
