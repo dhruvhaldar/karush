@@ -55,6 +55,7 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
     # allocation and improve speed.
     U = np.empty((n, 2))
     V = np.empty((n, 2))
+    H_update = np.empty((n, n))
 
     for k in range(max_iter):
         if np.dot(g, g) < tol_sq:
@@ -144,7 +145,11 @@ def bfgs_method(f, grad_f, x0, tol=1e-6, max_iter=100):
             V[:, 0] = Hy
             V[:, 1] = s
 
-            H += np.dot(U, V.T)
+            # Performance optimization: Evaluate the matrix multiplication directly
+            # into a pre-allocated array using the out= parameter, then add in-place.
+            # This avoids creating a temporary O(n^2) array on every iteration.
+            np.dot(U, V.T, out=H_update)
+            H += H_update
         else:
             # If ys is small, update might be unstable, so skip or restart H
             pass
