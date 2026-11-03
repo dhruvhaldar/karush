@@ -133,15 +133,15 @@ def primal_dual_qp(G, c, A, b, x0, z0, tol=1e-6, max_iter=20):
         # Performance optimization: We substitute r_C = x * z mathematically to avoid evaluating the redundant array r_C.
         # (-r_C + sigma * mu) / x = -(x * z) / x + sigma * mu / x = -z + sigma * mu / x.
         sigma_mu_div_x = (sigma * mu) * inv_x
-        rhs_1 = -r_L - z + sigma_mu_div_x
-        rhs_2 = -r_A
         
         # System:
         # [ M  -A^T ] [ dx ] = [ rhs_1 ]
         # [ A   0   ] [ dy ]   [ rhs_2 ]
         
-        rhs[:n] = rhs_1
-        rhs[n:] = rhs_2
+        np.negative(r_L, out=rhs[:n])
+        rhs[:n] -= z
+        rhs[:n] += sigma_mu_div_x
+        np.negative(r_A, out=rhs[n:])
         
         sol = np.linalg.solve(KKT, rhs)
             
